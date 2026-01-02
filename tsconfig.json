@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
+    "types": [
+      "node"
+    ],
     "target": "es2020",
-    "module": "commonjs",
+    "module": "nodenext",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
