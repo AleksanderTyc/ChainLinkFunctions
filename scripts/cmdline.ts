@@ -1,3 +1,5 @@
+// https://nodejs.org/docs/latest/api/process.html#processargv
+
 import process from 'node:process';
 
 const arrArgV: Array<string> = process.argv;
