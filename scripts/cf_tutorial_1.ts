@@ -34,7 +34,7 @@ req
 // MyTake: Return the temperature encoded as original * 10**18 represented as uint256
 
 async function handleResponse(response : Response):Promise<void> {
-    if (response.status !== 200 ) {
+    if (response.status !== 200 ) { // Also: check response.ok
         throw new Error(`* E * handleResponse, status ${response.status}, ${response.statusText}`);
     } else {
         const data = await response.json();

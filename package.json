@@ -1,7 +1,6 @@
 {
   "name": "clfunctions",
   "version": "1.0.0",
-  "type": "module",
   "description": "ChainLinkFunctions",
   "main": "index.js",
   "scripts": {
