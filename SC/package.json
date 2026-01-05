@@ -1,7 +1,7 @@
 {
-  "name": "clfunctions",
+  "name": "sc",
   "version": "1.0.0",
-  "description": "ChainLinkFunctions",
+  "description": "ChainLink Functions, Smart Contract section",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
