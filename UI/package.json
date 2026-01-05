@@ -1,4 +1,13 @@
 {
+  "name": "ui",
+  "version": "1.0.0",
+  "description": "ChainLink Functions, User Interface section",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "AleksT",
+  "license": "ISC",
   "devDependencies": {
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",

@@ -1,3 +1,5 @@
+/*
+Rubbish, requires module
 import {
   time,
   loadFixture,
@@ -6,7 +8,15 @@ import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
 import hre from "hardhat";
 
-import SimpleCounterModule from "../ignition/modules/SimpleCounter.ts";
+import SimpleCounterModule from "../ignition/modules/SimpleCounter.js";
+*/
+
+const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
+const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
+const { expect } = require("chai");
+const hre = require('hardhat');
+
+const SimpleCounterModule = require('../ignition/modules/SimpleCounter.js');
 
 describe("SimpleCounter", function () {
   // We define a fixture to reuse the same setup in every test.
