@@ -1,0 +1,80 @@
+body {
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    background-color: black;
+}
+
+button {
+    margin-top: 20px;
+
+    border: none;
+    border-radius: 5px;
+
+    padding: 8px 16px;
+    font-weight: bold;
+}
+
+h1 {
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+
+p {
+    color: #ccc5b9;
+}
+
+#hero {
+    width: 40%;
+    margin-top: 5%;
+    margin-left: auto;
+    margin-right: auto;
+
+    border-radius: 10px;
+    border: 5px solid #fffcf2;
+    background-color: #252422;
+
+    padding: 10%;
+}
+
+#h1-white {
+    color: #fffcf2;
+}
+
+button {
+    width: 40%;
+    color: #fffcf2;
+    background-color: #eb5e28;
+}
+
+#hbar {
+    height: 1px;
+    background-color: #403d39;
+
+    margin-top: 20px;
+}
+
+#passwds-cont {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.pwds-div {
+    margin-top: 20px;
+
+    border: none;
+    border-radius: 5px;
+
+    padding-top: 8px;
+    padding-bottom: 6px;
+
+    font-family: 'Courier New', Courier, monospace;
+    font-size: small;
+    text-align: center;
+    width: 100%;
+    background-color: #403d39;
+    color: #403d39;
+    color: #fffcf2;
+
+    overflow: hidden;
+}
