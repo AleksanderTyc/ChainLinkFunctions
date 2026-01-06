@@ -9,10 +9,14 @@
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
     "target": "esnext",
-    "types": [],
+    // https://blog.rampatra.com/es6-vs-es2020-vs-esnext-and-which-one-should-you-use
+    // https://www.typescriptlang.org/tsconfig/#module
+    // https://www.typescriptlang.org/tsconfig/#target
+    // In short: use nodenext and esnext
+    // "types": [],
     // For nodejs:
     // "lib": ["esnext"],
-    // "types": ["node"],
+    "types": ["node"],
     // and npm install -D @types/node
 
     // Other Outputs
