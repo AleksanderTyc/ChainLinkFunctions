@@ -17,7 +17,7 @@ artifacts/
 /coverage.json
 
 # Hardhat Ignition default folder for deployments against a local node
-ignition/deployments/chain-31337
+*/ignition/deployments/chain-31337
 
 # Do not add secrets.json to the repository
 secrets.json
