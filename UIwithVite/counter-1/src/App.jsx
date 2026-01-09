@@ -12,12 +12,14 @@ const SimpleCounter_ABI = [
 ];
 
 /* Local HardHat */
+/*
 const SimpleCounter_Interface = {
   networkProvider: new ethers.JsonRpcProvider(`http://127.0.0.1:8545`),
   addressContract: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
   addressWallet: secrets.HARDHATn1_WALLET
 };
 const wallet = new ethers.Wallet(secrets.HARDHATn1_PRIVATE_KEY, SimpleCounter_Interface.networkProvider);
+*/
 
 /* Sepolia (via MetaMask) */
 /* TODO
@@ -26,10 +28,17 @@ const SimpleCounter_Interface = {
   addressContract: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
   addressWallet: HARDHATn1_WALLET
 };
+const wallet = new ethers.Wallet(secrets.HARDHATn1_PRIVATE_KEY, SimpleCounter_Interface.networkProvider);
 */
 
+/* HardHat or Sepolia */
+/*
 const SimpleCounter_contract = new ethers.Contract(SimpleCounter_Interface.addressContract, SimpleCounter_ABI, SimpleCounter_Interface.networkProvider);
 const contractWithWallet = SimpleCounter_contract.connect(wallet);
+*/
+
+/* MetaMask */
+// TODO
 
 /* BC - related - ends */
 
@@ -58,26 +67,17 @@ function getCounter() {
 
 
 function App() {
+  let dtNowW = null;
+
   const [simpleCounter, setSimpleCounter] = React.useState(0);
+  const refConnW = React.useRef(null);
   const refDisp = React.useRef(null);
   const refBtnInc = React.useRef(null);
   const refBtnUpd = React.useRef(null);
-  /*
-    function increaseCounter() {
-      setSimpleCounter(curr => curr + 1);
-    }
-  
-    function getCounter() {
-      return new Promise((resolve, reject) => {
-        try {
-          resolve(simpleCounter);
-        }
-        catch (err) {
-          reject(err);
-        }
-      });
-    }
-  */
+
+  const [walletAddress, setWalletAddress] = React.useState("");
+  const [userBalance, setUserBalance] = React.useState(0);
+
   function clickUpdate() {
     refBtnUpd.current.innerText = 'Updating...';
     const promisedCounter = getCounter();
@@ -101,15 +101,138 @@ function App() {
     });
   }
 
+  /* BC related */
+  function handleChainChange(chainId) {
+    const dtNow = new Date();
+    console.log(`A9201 on ${dtNow} * handleChainChange * ${chainId}`);
+  }
+
+  function handleAccountChange(accounts) {
+    const dtNow = new Date();
+    if (accounts.length > 0) {
+      console.log(`A9101 on ${dtNow} * handleAccountChange * ${accounts[0]}`);
+      setWalletAddress(accounts[0]);
+    } else {
+      console.log(`A9102 on ${dtNow} * handleAccountChange * accounts is empty`);
+      setWalletAddress("");
+    }
+    return accounts;
+  }
+
+  function getAccount0Balance(accounts) {
+    const dtNow = new Date();
+    if (accounts.length > 0) {
+      window.ethereum.request({
+        method: "eth_getBalance",
+        params: [accounts[0], "latest"]
+      }).then(balance => {
+        const dtNow = new Date();
+        console.log(`A9301 on ${dtNow} * getAccount0Balance * ${balance}`);
+        setUserBalance(balance);
+      });
+    }
+    else {
+      setUserBalance(0);
+    }
+    return accounts;
+  };
+
+  function connectWallet() {
+    try {
+      /* MetaMask is installed - otherwise the button would be disabled - no way to call this function */
+      const accounts = window.ethereum.request({ method: "eth_requestAccounts" });
+      accounts
+        .then(result => {
+          const dtNow = new Date();
+          console.log(`A13 on ${dtNowW} * Calling handleAccountChange`, result);
+          handleAccountChange(result);
+        })
+        .catch(err => {
+          const dtNow = new Date();
+          console.error(`A121 on ${dtNowW} * ${err.message}`);
+        });
+    }
+    catch (err) {
+      dtNowW = new Date();
+      console.error(`A12 on ${dtNowW} * ${err.message}`);
+      // setErrorMessage(err.message);
+    }
+  };
+
+
+  /* BC related ends */
+
   React.useEffect(
     () => {
-      clickUpdate();
+      /* HardHat or Sepolia */
+      /*
+            clickUpdate();
+      */
+
+      /* MetaMask */
+      if ((typeof window != "undefined") && (typeof window.ethereum != "undefined")) {
+        /* MetaMask is installed */
+        try {
+          dtNowW = new Date();
+          console.log(`A41 on ${dtNowW} * Registering handleAccountChange as Promise handler to eth_accounts`);
+          window.ethereum.request({ method: "eth_accounts" })
+            .then((accounts) => handleAccountChange(accounts))
+            .then((accounts) => getAccount0Balance(accounts))
+            ;
+
+          // addWalletListener();
+          dtNowW = new Date();
+          console.log(`A42 on ${dtNowW} * Registering handleAccountChange as event listener to accountsChanged`);
+          window.ethereum.on("accountsChanged", handleAccountChange);
+          // addChainListener
+          dtNowW = new Date();
+          console.log(`A43 on ${dtNowW} * Registering handleChainChange as event listener to chainChanged`);
+          window.ethereum.on("chainChanged", handleChainChange);
+
+        }
+        catch (err) {
+          dtNowW = new Date();
+          console.error(`A48 on ${dtNowW} * ${err.message}`);
+        }
+      }
+      else {
+        /* MetaMask is not installed */
+        dtNowW = new Date();
+        console.log(`A49 on ${dtNowW} * Please install MetaMask`);
+        // setWalletAddress("");
+        refConnW.current.innerText = 'MM absent';
+        refConnW.current.disabled = true;
+      }
+      return (
+        () => {
+          if ((typeof window != "undefined") && (typeof window.ethereum != "undefined")) {
+            const dtNow = new Date();
+            console.log(`A211 on ${dtNow} * De-registering event listeners: handleAccountChange, handleChainChange`);
+            window.ethereum.removeListener("accountsChanged", handleAccountChange);
+            window.ethereum.removeListener("chainChanged", handleChainChange);
+          }
+        }
+      );
+
     }, []
   );
 
   return (
     <div id="hero">
       <h1 id="h1-white">Simple Counter Toy</h1>
+
+      <div className="d-grid gap-2">
+        <button ref={refConnW} id="actionBtn" onClick={() => { connectWallet(); }}>Connect Wallet</button>
+      </div>
+      <div className="displayAccount">
+        <h4 className="walletAddress">
+          Address: {walletAddress.length > 0 ? walletAddress : "Not connected"}
+        </h4>
+        <h4 className="balanceDisplay">
+          Wallet Balance: {walletAddress.length > 0 ? userBalance : "Not connected"}
+        </h4>
+      </div>
+
       <p>Use a counter with Smart Contract behind it.</p>
       <div ref={refDisp} className="pwds-div" id="counter-disp">{simpleCounter}</div>
       <div id="hbar"></div>
