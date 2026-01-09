@@ -79,6 +79,7 @@ function App() {
     }
   */
   function clickUpdate() {
+    refBtnUpd.current.innerText = 'Updating...';
     const promisedCounter = getCounter();
     // btnUpdate.disabled = true;
     promisedCounter.then(value => {
@@ -102,7 +103,6 @@ function App() {
 
   React.useEffect(
     () => {
-      // refBtnInc.current.innerText = 'Increase';
       clickUpdate();
     }, []
   );
