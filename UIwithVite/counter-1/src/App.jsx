@@ -6,6 +6,16 @@ import { ethers } from "ethers";
 // import secrets from "../../src/secrets.json" with {type: "json"};
 import secrets from "../../../src/secrets.json" with {type: "json"};
 
+/* Signatures
+https://rareskills.io/post/abi-encoding
+const s1currentCount = 'currentCount()';
+ethers.id(s1currentCount).substring(0,10);
+-- 0xc732d201
+const s2increase = 'increase()';
+ethers.id(s2increase).substring(0,10);
+-- 0xe8927fbc
+https://ethereum.stackexchange.com/questions/119583/when-to-use-abi-encode-abi-encodepacked-or-abi-encodewithsignature-in-solidity
+*/
 const SimpleCounter_ABI = [
   "function currentCount() public view returns (uint256)",
   "function increase() public"
@@ -38,7 +48,9 @@ const contractWithWallet = SimpleCounter_contract.connect(wallet);
 */
 
 /* MetaMask */
-// TODO
+const SimpleCounter_Interface = {
+  addressContract: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+};
 
 /* BC - related - ends */
 
@@ -54,10 +66,25 @@ function increaseCounter() {
   });
 }
 
-function getCounter() {
+function getCounter(walletAddress) {
+  const dtNow = new Date();
+  console.log(`A7201 on ${dtNow} * getCounter * walletAddress is ${walletAddress}`);
   return new Promise((resolve, reject) => {
     try {
-      resolve(contractWithWallet.currentCount());
+      // resolve(contractWithWallet.currentCount());
+      resolve(window.ethereum.request(
+        {
+          method: "eth_sendTransaction",
+          params: [
+            {
+              from: walletAddress,
+              to: SimpleCounter_Interface.addressContract,
+              data: "0xc732d201",
+              chainId: "0x7a69" // 31337 HardHat
+            }]
+          }
+      ));
+      // resolve(117);
     }
     catch (err) {
       reject(err);
@@ -80,7 +107,7 @@ function App() {
 
   function clickUpdate() {
     refBtnUpd.current.innerText = 'Updating...';
-    const promisedCounter = getCounter();
+    const promisedCounter = getCounter(walletAddress);
     // btnUpdate.disabled = true;
     promisedCounter.then(value => {
       console.log(`* I * clickUpdate, value ${value}`);
@@ -213,7 +240,6 @@ function App() {
           }
         }
       );
-
     }, []
   );
 
