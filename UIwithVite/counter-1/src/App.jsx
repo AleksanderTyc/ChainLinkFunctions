@@ -49,16 +49,32 @@ const contractWithWallet = SimpleCounter_contract.connect(wallet);
 
 /* MetaMask */
 const SimpleCounter_Interface = {
-  addressContract: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+  networkProvider: new ethers.JsonRpcProvider(`http://127.0.0.1:8545`),
+  addressContract: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  addressWallet: secrets.HARDHATn1_WALLET
 };
 
 /* BC - related - ends */
 
 
-function increaseCounter() {
+function increaseCounter(walletAddress) {
+  const dtNow = new Date();
+  console.log(`A7301 on ${dtNow} * increaseCounter * walletAddress is ${walletAddress}`);
   return new Promise((resolve, reject) => {
     try {
-      resolve(contractWithWallet.increase());
+      // resolve(contractWithWallet.increase());
+      resolve(window.ethereum.request(
+        {
+          method: "eth_sendTransaction",
+          params: [
+            {
+              from: walletAddress,
+              to: SimpleCounter_Interface.addressContract,
+              data: "0xe8927fbc"
+              // chainId: "0x7a69" // 31337 HardHat
+            }]
+        }
+      ));
     }
     catch (err) {
       reject(err);
@@ -74,15 +90,13 @@ function getCounter(walletAddress) {
       // resolve(contractWithWallet.currentCount());
       resolve(window.ethereum.request(
         {
-          method: "eth_sendTransaction",
+          method: "eth_call",
           params: [
             {
-              from: walletAddress,
               to: SimpleCounter_Interface.addressContract,
-              data: "0xc732d201",
-              chainId: "0x7a69" // 31337 HardHat
+              data: "0xc732d201"
             }]
-          }
+        }
       ));
       // resolve(117);
     }
@@ -96,7 +110,7 @@ function getCounter(walletAddress) {
 function App() {
   let dtNowW = null;
 
-  const [simpleCounter, setSimpleCounter] = React.useState(0);
+  const [simpleCounter, setSimpleCounter] = React.useState(BigInt(0));
   const refConnW = React.useRef(null);
   const refDisp = React.useRef(null);
   const refBtnInc = React.useRef(null);
@@ -105,13 +119,26 @@ function App() {
   const [walletAddress, setWalletAddress] = React.useState("");
   const [userBalance, setUserBalance] = React.useState(0);
 
+  function monitorComplete(txHash) {
+    dtNowW = new Date();
+    console.log(`* I * monitorComplete * ${dtNowW} * txHash`, txHash);
+    const receiptPromise = SimpleCounter_Interface.networkProvider.waitForTransaction(txHash);
+    receiptPromise.then(receipt => {
+      dtNowW = new Date();
+      console.log(`* I * monitorComplete resolve * ${dtNowW} * receipt`, receipt);
+      clickUpdate();
+      // refBtnInc.current.innerText = 'Increase';
+    });
+  }
+
   function clickUpdate() {
     refBtnUpd.current.innerText = 'Updating...';
     const promisedCounter = getCounter(walletAddress);
     // btnUpdate.disabled = true;
     promisedCounter.then(value => {
-      console.log(`* I * clickUpdate, value ${value}`);
-      setSimpleCounter(value);
+      console.log(`* I * clickUpdate, value ${value}, ${BigInt(value)}`);
+      setSimpleCounter(BigInt(value));
+      getAccountBalance(walletAddress);
       refBtnInc.current.disabled = false;
       refBtnInc.current.innerText = 'Increase';
       refBtnUpd.current.innerText = 'Update';
@@ -122,9 +149,14 @@ function App() {
     refBtnInc.current.disabled = true;
     refBtnInc.current.innerText = 'Increasing...'
 
-    const promisedIncrease = increaseCounter();
+    const promisedIncrease = increaseCounter(walletAddress);
     promisedIncrease.then(result => {
-      clickUpdate();
+      refBtnInc.current.innerText = 'Upd after Increase...'
+      dtNowW = new Date();
+      console.log(`* I * clickIncrease * ${dtNowW} * result`, result);
+      // clickUpdate();
+      // refBtnInc.current.innerText = 'Upd after Increase...'
+      monitorComplete(result);
     });
   }
 
@@ -162,6 +194,23 @@ function App() {
       setUserBalance(0);
     }
     return accounts;
+  };
+
+  function getAccountBalance(account) {
+    const dtNow = new Date();
+    if (account === undefined) {
+      setUserBalance(0);
+    }
+    else {
+      window.ethereum.request({
+        method: "eth_getBalance",
+        params: [account, "latest"]
+      }).then(balance => {
+        const dtNow = new Date();
+        console.log(`A9311 on ${dtNow} * getAccountBalance * ${balance}`);
+        setUserBalance(balance);
+      });
+    }
   };
 
   function connectWallet() {
