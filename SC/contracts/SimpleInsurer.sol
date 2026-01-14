@@ -20,25 +20,26 @@ contract SimpleInsurer {
         string calldata _latitude,
         string calldata _longitude
     ) public payable {
-        require(msg.sender != owner, "E01: Insured is Owner");
-        require(bytes(_latitude).length > 0, "E02: Insured latitude empty");
-        require(bytes(_longitude).length > 0, "E03: Insured longitude empty");
+        require(msg.value > 0, "E14: Zero premium");
+        require(bytes(_latitude).length > 0, "E12: Insured latitude empty");
+        require(bytes(_longitude).length > 0, "E13: Insured longitude empty");
+        require(msg.sender != owner, "E11: Insured is Owner");
 
         insured = msg.sender;
-        claimStatus == 1;
+        claimStatus = 1;
         latitude = _latitude;
         longitude = _longitude;
     }
 
     function setClaim(uint256 _claimStatus) public {
-        require(msg.sender == owner, "E04: Only Owner allowed to setClaim");
+        require(msg.sender == owner, "E21: Only Owner allowed to setClaim");
 
         claimStatus = _claimStatus;
     }
 
     function claim() public {
-        require(msg.sender == insured, "E05: Only Insured can claim");
-        require(claimStatus == 2, "E02: No claim available");
+        require(msg.sender == insured, "E31: Only Insured can claim");
+        require(claimStatus == 2, "E32: No claim available");
 
         (bool result, ) = insured.call{value: address(this).balance}("");
         if (result) {
