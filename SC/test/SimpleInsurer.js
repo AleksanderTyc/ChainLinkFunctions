@@ -25,7 +25,7 @@ describe("SimpleInsurer", function () {
         let miningResult = null;
         const { contractSimpleInsurer, owner, otherAccount } = await loadFixture(deploySimpleInsurerFixture);
 
-        // initiate the transaction - deploy salted wallet contract
+        // initiate the transaction
         tx = await contractSimpleInsurer.connect(otherAccount).insure("53.122261976193464", "17.99897582348337", { value: ethers.parseEther("1.1") });
         // wait until mined
         miningResult = await tx.wait();
@@ -38,7 +38,7 @@ describe("SimpleInsurer", function () {
         let miningResult = null;
         const { contractSimpleInsurer, owner, otherAccount } = await loadFixture(insureSimpleInsurerFixture);
 
-        // initiate the transaction - deploy salted wallet contract
+        // initiate the transaction
         tx = await contractSimpleInsurer.connect(owner).setClaim(2);
         // wait until mined
         miningResult = await tx.wait();
@@ -80,7 +80,7 @@ describe("SimpleInsurer", function () {
         it("I5. claimStatus must be set to 1", async function () {
             const { contractSimpleInsurer, owner, otherAccount } = await loadFixture(deploySimpleInsurerFixture);
 
-            // initiate the transaction - deploy salted wallet contract
+            // initiate the transaction
             tx = await contractSimpleInsurer.connect(otherAccount).insure("53.122261976193464", "17.99897582348337", { value: ethers.parseEther("1.1") });
             // wait until mined
             miningResult = await tx.wait();
@@ -90,7 +90,7 @@ describe("SimpleInsurer", function () {
         it("I6. Insured must be set to caller", async function () {
             const { contractSimpleInsurer, owner, otherAccount } = await loadFixture(deploySimpleInsurerFixture);
 
-            // initiate the transaction - deploy salted wallet contract
+            // initiate the transaction
             tx = await contractSimpleInsurer.connect(otherAccount).insure("53.122261976193464", "17.99897582348337", { value: ethers.parseEther("1.1") });
             // wait until mined
             miningResult = await tx.wait();
@@ -100,7 +100,7 @@ describe("SimpleInsurer", function () {
         it("I7. Latitude must be set accordingly", async function () {
             const { contractSimpleInsurer, owner, otherAccount } = await loadFixture(deploySimpleInsurerFixture);
 
-            // initiate the transaction - deploy salted wallet contract
+            // initiate the transaction
             tx = await contractSimpleInsurer.connect(otherAccount).insure("53.122261976193464", "17.99897582348337", { value: ethers.parseEther("1.1") });
             // wait until mined
             miningResult = await tx.wait();
@@ -110,12 +110,58 @@ describe("SimpleInsurer", function () {
         it("I8. Longitude must be set accordingly", async function () {
             const { contractSimpleInsurer, owner, otherAccount } = await loadFixture(deploySimpleInsurerFixture);
 
-            // initiate the transaction - deploy salted wallet contract
+            // initiate the transaction
             tx = await contractSimpleInsurer.connect(otherAccount).insure("53.122261976193464", "17.99897582348337", { value: ethers.parseEther("1.1") });
             // wait until mined
             miningResult = await tx.wait();
 
             expect(await contractSimpleInsurer.longitude()).to.equal("17.99897582348337");
+        });
+    });
+    describe("Setting a claim", function () {
+        let tx = null;
+        let miningResult = null;
+
+        it("S1. Only owner (first HardHat wallet) can set the claim", async function () {
+            const { contractSimpleInsurer, owner, otherAccount } = await loadFixture(insureSimpleInsurerFixture);
+            await expect(contractSimpleInsurer.connect(otherAccount).setClaim(2)).to.be.revertedWith("E21: Only Owner allowed to setClaim");
+        });
+        it("S2. claimStatus must be set to 2", async function () {
+            const { contractSimpleInsurer, owner, otherAccount } = await loadFixture(insureSimpleInsurerFixture);
+
+            // initiate the transaction
+            tx = await contractSimpleInsurer.connect(owner).setClaim(2);
+            // wait until mined
+            miningResult = await tx.wait();
+
+            expect(await contractSimpleInsurer.claimStatus()).to.equal(2);
+        });
+    });
+    describe("Claiming", function () {
+        let tx = null;
+        let miningResult = null;
+
+        it("C1. Attempt to claim prematurely fails (claimStatus must be set to 2)", async function () {
+            const { contractSimpleInsurer, owner, otherAccount } = await loadFixture(insureSimpleInsurerFixture);
+            await expect(contractSimpleInsurer.connect(otherAccount).claim()).to.be.revertedWith("E32: No claim available");
+        });
+        it("C2. Only insured (second HardHat wallet) can claim", async function () {
+            const { contractSimpleInsurer, owner, otherAccount } = await loadFixture(claimSimpleInsurerFixture);
+            await expect(contractSimpleInsurer.connect(owner).claim()).to.be.revertedWith("E31: Only Insured can claim");
+        });
+        it("C3. Claim is paid to Insured wallet", async function () {
+            const { contractSimpleInsurer, owner, otherAccount } = await loadFixture(claimSimpleInsurerFixture);
+
+            const balanceBefore = await ethers.provider.getBalance(otherAccount.address);
+
+            // initiate the transaction
+            tx = await contractSimpleInsurer.connect(otherAccount).claim();
+            // wait until mined
+            miningResult = await tx.wait();
+            const balanceAfter = await ethers.provider.getBalance(otherAccount.address);
+            const balanceDiffCheck = (balanceBefore - balanceAfter - 11n * 10n ** 17n) < 10n ** 15n;
+
+            expect(balanceDiffCheck).to.be.true;
         });
     });
 });
