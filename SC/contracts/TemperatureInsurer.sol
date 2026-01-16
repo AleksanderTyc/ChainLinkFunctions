@@ -37,11 +37,25 @@ contract TemperatureInsurer {
     }
 
     function setClaim(uint256 _temperature) public {
+        require(
+            claimStatus == 1,
+            "E22: Claim Status must be 1 when calling setClaim"
+        );
         require(msg.sender == owner, "E21: Only Owner allowed to setClaim");
         if (_temperature < adverseTemperature) {
             claimStatus = 2;
             emit Adverse(msg.sender, _temperature);
         }
+    }
+
+    function setAdverseTemperature(uint256 _adverseTemperature) public {
+        require(msg.sender == owner, "E42: Only Owner allowed to call setAdverseTemperature");
+        adverseTemperature = _adverseTemperature;
+    }
+
+    function setClaimStatus(uint256 _claimStatus) public {
+        require(msg.sender == owner, "E41: Only Owner allowed to call setClaimStatus");
+        claimStatus = _claimStatus;
     }
 
     function claim() public {

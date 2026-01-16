@@ -117,6 +117,20 @@ describe("TemperatureInsurer", function () {
 
             expect(await contractTemperatureInsurer.longitude()).to.equal("17.99897582348337");
         });
+        it("I9. Only owner (first HardHat wallet) can force-set adverse temperature", async function () {
+            const { contractTemperatureInsurer, owner, otherAccount } = await loadFixture(deployTemperatureInsurerFixture);
+            await expect(contractTemperatureInsurer.connect(otherAccount).setAdverseTemperature(102)).to.be.revertedWith("E42: Only Owner allowed to call setAdverseTemperature");
+        });
+        it("I10. Calling setAdverseTemperature(102) sets claim status to 102", async function () {
+            const { contractTemperatureInsurer, owner, otherAccount } = await loadFixture(deployTemperatureInsurerFixture);
+
+            // initiate the transaction
+            tx = await contractTemperatureInsurer.connect(owner).setAdverseTemperature(102);
+            // wait until mined
+            miningResult = await tx.wait();
+
+            expect(await contractTemperatureInsurer.adverseTemperature()).to.equal(102);
+        });
     });
     describe("Setting a claim", function () {
         let tx = null;
@@ -125,6 +139,10 @@ describe("TemperatureInsurer", function () {
         it("S1. Only owner (first HardHat wallet) can set the claim", async function () {
             const { contractTemperatureInsurer, owner, otherAccount } = await loadFixture(insureTemperatureInsurerFixture);
             await expect(contractTemperatureInsurer.connect(otherAccount).setClaim(276n * 10n ** 18n)).to.be.revertedWith("E21: Only Owner allowed to setClaim");
+        });
+        it("S2. Setting the claim requires the contract to be insured (claimStatus == 1)", async function () {
+            const { contractTemperatureInsurer, owner, otherAccount } = await loadFixture(deployTemperatureInsurerFixture);
+            await expect(contractTemperatureInsurer.connect(owner).setClaim(276n * 10n ** 18n)).to.be.revertedWith("E22: Claim Status must be 1 when calling setClaim");
         });
         it("S3. Setting the claim above adverse temperature does not change the claimStatus (i.e. stays at 1)", async function () {
             const { contractTemperatureInsurer, owner, otherAccount } = await loadFixture(insureTemperatureInsurerFixture);
@@ -158,6 +176,20 @@ describe("TemperatureInsurer", function () {
             await expect(contractTemperatureInsurer.connect(owner).setClaim(266n * 10n ** 18n))
                 .to.emit(contractTemperatureInsurer, "Adverse")
                 .withArgs(owner.address, 266n * 10n ** 18n);
+        });
+        it("S11. Only owner (first HardHat wallet) can force-set claim status", async function () {
+            const { contractTemperatureInsurer, owner, otherAccount } = await loadFixture(insureTemperatureInsurerFixture);
+            await expect(contractTemperatureInsurer.connect(otherAccount).setClaimStatus(101)).to.be.revertedWith("E41: Only Owner allowed to call setClaimStatus");
+        });
+        it("S12. Calling setClaimStatus(101) sets claim status to 101", async function () {
+            const { contractTemperatureInsurer, owner, otherAccount } = await loadFixture(insureTemperatureInsurerFixture);
+
+            // initiate the transaction
+            tx = await contractTemperatureInsurer.connect(owner).setClaimStatus(101);
+            // wait until mined
+            miningResult = await tx.wait();
+
+            expect(await contractTemperatureInsurer.claimStatus()).to.equal(101);
         });
     });
     describe("Claiming", function () {
