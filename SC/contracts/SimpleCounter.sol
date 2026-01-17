@@ -31,6 +31,21 @@ const s2increase = 'increase()';
 ethers.id(s2increase).substring(0,10);
 -- 0xe8927fbc
 https://ethereum.stackexchange.com/questions/119583/when-to-use-abi-encode-abi-encodepacked-or-abi-encodewithsignature-in-solidity
+
+eth_call returns primitive data (256 bit blocks). In order for it to be used properly in JS, the result then needs to be ABI-decoded:
+> ethers.id("owner()").substring(0,10)
+'0x8da5cb5b'
+> const r1 = await ethers.provider.send("eth_call", [{to:'0x5FbDB2315678afecb367f032d93F642f64180aa3', data:"0x8da5cb5b"}]);
+> r1
+'0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266'
+> const cdr = ethers.AbiCoder.defaultAbiCoder();
+> cdr.decode(["address"], r1);
+Result(1) [ '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266' ]
+> const [owner, otherAccount] = await ethers.getSigners();
+> owner.address === cdr.decode(["address"], r1)[0];
+true
+> BigInt(r1);
+1390849295786071768276380950238675083608645509734n
 */
 
 /* Listening to event
