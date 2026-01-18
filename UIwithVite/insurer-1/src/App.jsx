@@ -1,7 +1,7 @@
 import React from 'react';
 
 /* BC - related */
-import { ABIGetter } from './TemperatureInsurer_ABI';
+import { ABIGetter, getBalance, cSetClaimStatus } from './TemperatureInsurer_ABI';
 
 /* MetaMask */
 /*
@@ -29,6 +29,7 @@ function App() {
     const [cStatus, setCStatus] = React.useState("");
     const [cOwner, setCOwner] = React.useState("");
     const [cClaimStatus, setCClaimStatus] = React.useState("");
+    const [cPremium, setCPremium] = React.useState("");
     const [cAdverseTemperature, setAdverseTemperature] = React.useState("");
     const [cInsured, setCInsured] = React.useState("");
     const [cLatitude, setCLatitude] = React.useState("");
@@ -108,23 +109,9 @@ function App() {
                     console.log(`A259 * ${dtNow.toISOString().substring(11, 23)} * Promise.all * error`, error.message);
                 }
             );
-            /*
-                        ABIGetter(TemperatureInsurer_Interface.addressContract, "get_owner").then(
-                            result => {
-                                setCOwner(result);
-                                return result;
-                                if (result.toLowerCase() === accounts[0].toLowerCase()) {
-                                    setAppStatus('Owner');
-                                }
-                            }
-                        );
-                        ABIGetter(TemperatureInsurer_Interface.addressContract, "get_claimStatus").then(
-                            result => setCClaimStatus(result)
-                        );
-                        ABIGetter(TemperatureInsurer_Interface.addressContract, "get_insured").then(
-                            result => setCInsured(result)
-                        );
-                        */
+            getBalance(TemperatureInsurer_Interface.addressContract).then(
+                result => setCPremium(result)
+            );
             ABIGetter(TemperatureInsurer_Interface.addressContract, "get_adverseTemperature").then(
                 result => setAdverseTemperature((Number(result / (10n ** 15n)) / 1000 - 274).toFixed(1))
             );
@@ -164,6 +151,17 @@ function App() {
         }
     };
 
+    function updStatusForce() {
+        dtNowW = new Date();
+        console.log(`A401 * ${dtNowW.toISOString().substring(11, 23)} * updStatusForce`);
+        cSetClaimStatus(TemperatureInsurer_Interface.addressContract, 12).then(
+            result => {
+                const dtNow = new Date();
+                console.error(`A419 * ${dtNow.toISOString().substring(11, 23)} * updStatusForce * result`, result);
+            }
+        );
+    }
+
     React.useEffect(
         () => {
             dtNowW = new Date();
@@ -199,6 +197,7 @@ function App() {
         }
         , []
     );
+
     return (
         <div id="hero">
             <h1 id="h1-white">Temperature Insurer</h1>
@@ -229,6 +228,9 @@ function App() {
                             Claim Status: {cClaimStatus}
                         </h4>
                         <h4 className="walletAddress">
+                            Premium: {cPremium}
+                        </h4>
+                        <h4 className="walletAddress">
                             Adverse Temperature: {cAdverseTemperature}
                         </h4>
                         <h4 className="walletAddress">
@@ -243,6 +245,24 @@ function App() {
                     </>
                 }
             </div>
+            <div id="hbar"></div>
+            <div id="passwds-cont">
+                <input id="inc-btn" />
+                <button id="upd-btn" onClick={() => { }}>Update Adverse Temperature</button>
+            </div>
+            <div id="passwds-cont">
+                <input id="inc-btn" />
+                <button id="upd-btn" onClick={updStatusForce}>Force-update Status</button>
+            </div>
+            <div id="passwds-cont">
+                <input id="inc-btn" />
+                <button id="upd-btn" onClick={() => { }}>Update Status with Temperature</button>
+            </div>
+            <div id="passwds-cont">
+                <button id="inc-btn" onClick={() => { }}>Buy</button>
+                <button id="upd-btn" onClick={() => { }}>Claim</button>
+            </div>
+
         </div>
     );
 }

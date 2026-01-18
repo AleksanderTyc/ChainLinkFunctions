@@ -75,6 +75,26 @@ const TemperatureInsurer_ABI = [
     }
 ];
 
+async function getBalance(walletAddress) {
+    const dtNow = new Date();
+    console.log(`D1111 * ${dtNow.toISOString().substring(11, 23)} * getBalance * walletAddress ${walletAddress}`);
+    try {
+        const primitiveValue = await window.ethereum.request(
+            {
+                method: "eth_getBalance",
+                params: [walletAddress]
+            }
+        );
+        const formattedValue = ethers.formatEther(primitiveValue);
+        return formattedValue;
+    }
+    catch (err) {
+        const dtNow = new Date();
+        console.log(`D1129 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * error *`, err);
+        throw new Error(`* E * ABIGetter * eth_call * ${err.message}`);
+    }
+}
+
 async function ABIGetter(contractAddress, functionCallSign) {
     const dtNow = new Date();
     console.log(`D1011 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * contractAddress ${contractAddress}`);
@@ -102,7 +122,9 @@ async function ABIGetter(contractAddress, functionCallSign) {
         return decodedValue;
     }
     catch (err) {
-        throw new Error("");
+        const dtNow = new Date();
+        console.log(`D1029 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * error *`, err);
+        throw new Error(`* E * ABIGetter * eth_call * ${err.message}`);
     }
 }
 
@@ -140,6 +162,55 @@ function ABIGetter_sync(contractAddress, functionCallSign) {
     });
 }
 
+function cSetClaimStatus(contractAddress, cStatus = 2) {
+    const item = TemperatureInsurer_ABI.find(contractFunction => 'call_setClaimStatus' === contractFunction.callSign);
+
+    return        new Promise((resolve, reject) => {
+            try{
+                const cdr = ethers.AbiCoder.defaultAbiCoder();
+                const encodedData = cdr.encode(['uint256'], [cStatus]).substring(2);
+                resolve(window.ethereum.request(
+                    {
+                        method: "eth_sendTransaction",
+                        params: [
+                          {
+                            from: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+                            to: contractAddress,
+                            data: "0xe8927fbc" +encodedData
+/*
+> cdr.encode(['uint256'],[1]);
+'0x4785920d0000000000000000000000000000000000000000000000000000000000000001'
+> cdr.encode(['uint256'],[272400000000000000000n]);
+'0x00000000000000000000000000000000000000000000000ec44f34c350680000'
+> cdr.encode(['string'],['53.122261976193464']);
+'0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001235332e3132323236313937363139333436340000000000000000000000000000'
+-- i.e. 0x
+0000000000000000000000000000000000000000000000000000000000000020
+0000000000000000000000000000000000000000000000000000000000000012
+35332e3132323236313937363139333436340000000000000000000000000000
+> cdr.encode(['string', 'string'],['53.122261976193464', '17.123']);
+'0x00000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000001235332e3132323236313937363139333436340000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000631372e3132330000000000000000000000000000000000000000000000000000'
+-- i.e. 0x
+0000000000000000000000000000000000000000000000000000000000000040
+0000000000000000000000000000000000000000000000000000000000000080
+0000000000000000000000000000000000000000000000000000000000000012
+35332e3132323236313937363139333436340000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000006
+31372e3132330000000000000000000000000000000000000000000000000000'
+*/                           
+                            // chainId: "0x7a69" // 31337 HardHat
+                          }]
+              
+                    }
+                ));
+            }
+            catch(err) {
+                reject(err);
+            }
+        }
+    );
+}
+
 export {
-    ABIGetter
+    ABIGetter, getBalance, cSetClaimStatus
 };
