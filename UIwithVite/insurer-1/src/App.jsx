@@ -1,7 +1,7 @@
 import React from 'react';
 
 /* BC - related */
-import { ABIGetter, getBalance, cSetClaimStatus } from './TemperatureInsurer_ABI';
+import { ABIGetter, getBalance, cSetClaimStatus, cClaim } from './TemperatureInsurer_ABI';
 
 /* MetaMask */
 /*
@@ -40,7 +40,9 @@ function App() {
         dtNowW = new Date();
         console.log(`A240 * ${dtNowW.toISOString().substring(11, 23)} * handleAccountChange`);
         if (accounts.length > 0) {
-            console.log(`A241 * ${dtNowW.toISOString().substring(11, 23)} * handleAccountChange * ${accounts[0]}`);
+            console.log(`A241 * ${dtNowW.toISOString().substring(11, 23)} * handleAccountChange * accounts[0] ${accounts[0]}`);
+            console.log(`A242 * ${dtNowW.toISOString().substring(11, 23)} * handleAccountChange * accounts`, accounts);
+            console.log(`A243 * ${dtNowW.toISOString().substring(11, 23)} * handleAccountChange * selectedAddress ${window.ethereum.selectedAddress}`);
             setWalletAddress(accounts[0]);
             setAppStatus('Connected');
 
@@ -151,15 +153,62 @@ function App() {
         }
     };
 
-    function updStatusForce() {
+    function updAdvTemp(formData) {
+        // const formObject = Object.fromEntries(formData);
+        // console.log(`* I * testFormSubmit * formObject`, formObject);
+        const formObject = formData.get('nameAdvTemp');
+        console.log(`* I * updAdvTemp * formObject`, formObject);
+    }
+
+    function updStatus(formData) {
+        const formObject = Number(formData.get('nameStatus'));
+        /*
         dtNowW = new Date();
-        console.log(`A401 * ${dtNowW.toISOString().substring(11, 23)} * updStatusForce`);
-        cSetClaimStatus(TemperatureInsurer_Interface.addressContract, 12).then(
-            result => {
+        console.log(`A411 * ${dtNowW.toISOString().substring(11, 23)} * updStatus * formObject`, formObject, typeof formObject);
+        */
+        cSetClaimStatus(TemperatureInsurer_Interface.addressContract, formObject)
+            .then(result => {
                 const dtNow = new Date();
-                console.error(`A419 * ${dtNow.toISOString().substring(11, 23)} * updStatusForce * result`, result);
-            }
-        );
+                console.log(`A4111 * ${dtNow.toISOString().substring(11, 23)} * updStatus * result`, result);
+            })
+            .catch(error => {
+                const dtNow = new Date();
+                console.error(`A4119 * ${dtNow.toISOString().substring(11, 23)} * updStatus * error`, error);
+            });
+    }
+
+    function updStatusWithTemp(formData) {
+        // const formObject = Object.fromEntries(formData);
+        // console.log(`* I * testFormSubmit * formObject`, formObject);
+        const formObject = formData.get('nameStatusTemp');
+        console.log(`* I * updStatusWithTemp * formObject`, formObject);
+    }
+
+    function submitBuy() {
+        dtNowW = new Date();
+        console.log(`A461 * ${dtNowW.toISOString().substring(11, 23)} * submitBuy`);
+
+    }
+
+    function submitClaim() {
+        dtNowW = new Date();
+        console.log(`A451 * ${dtNowW.toISOString().substring(11, 23)} * submitClaim`);
+        cClaim(TemperatureInsurer_Interface.addressContract)
+            .then(result => {
+                const dtNow = new Date();
+                console.log(`A4511 * ${dtNow.toISOString().substring(11, 23)} * submitClaim * result`, result);
+            })
+            .catch(error => {
+                const dtNow = new Date();
+                console.error(`A4519 * ${dtNow.toISOString().substring(11, 23)} * submitClaim * error`, error);
+            });
+    }
+
+    function testFormSubmit(formData) {
+        // const formObject = Object.fromEntries(formData);
+        // console.log(`* I * testFormSubmit * formObject`, formObject);
+        const formObject = formData.get('nameAdvTemp');
+        console.log(`* I * testFormSubmit * formObject`, formObject);
     }
 
     React.useEffect(
@@ -245,24 +294,37 @@ function App() {
                     </>
                 }
             </div>
-            <div id="hbar"></div>
+            <section>
+                <div id="hbar"></div>
+                <h1>Update Adverse Temperature</h1>
+                <form action={updAdvTemp}>
+                    <label htmlFor='inpAdvTemp'>New Adverse Temperature:</label>
+                    <input id='inpAdvTemp' name='nameAdvTemp' type='number' required min={-80} max={50} step={0.1} defaultValue={-2.5} />
+                    <input type='submit' value='Set' />
+                </form>
+            </section>
+            <section>
+                <div id="hbar"></div>
+                <h1>Force-update Status</h1>
+                <form action={updStatus}>
+                    <label htmlFor='inpStatus'>New Status:</label>
+                    <input id='inpStatus' name='nameStatus' type='number' required min={0} max={100} defaultValue={2} />
+                    <input type='submit' value='Set' />
+                </form>
+            </section>
+            <section>
+                <div id="hbar"></div>
+                <h1>Update Status with Temperature</h1>
+                <form action={updStatusWithTemp}>
+                    <label htmlFor='inpStatusTemp'>New Current Temperature:</label>
+                    <input id='inpStatusTemp' name='nameStatusTemp' type='number' required min={-80} max={50} step={0.1} defaultValue={9.5} />
+                    <input type='submit' value='Set' />
+                </form>
+            </section>
             <div id="passwds-cont">
-                <input id="inc-btn" />
-                <button id="upd-btn" onClick={() => { }}>Update Adverse Temperature</button>
+                <button id="inc-btn" onClick={submitBuy}>Buy</button>
+                <button id="upd-btn" onClick={submitClaim}>Claim</button>
             </div>
-            <div id="passwds-cont">
-                <input id="inc-btn" />
-                <button id="upd-btn" onClick={updStatusForce}>Force-update Status</button>
-            </div>
-            <div id="passwds-cont">
-                <input id="inc-btn" />
-                <button id="upd-btn" onClick={() => { }}>Update Status with Temperature</button>
-            </div>
-            <div id="passwds-cont">
-                <button id="inc-btn" onClick={() => { }}>Buy</button>
-                <button id="upd-btn" onClick={() => { }}>Claim</button>
-            </div>
-
         </div>
     );
 }
