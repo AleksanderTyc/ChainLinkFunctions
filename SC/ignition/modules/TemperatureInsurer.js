@@ -5,7 +5,7 @@
 const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
 const TemperatureInsurerModule = buildModule("TemperatureInsurerModule", (m) => {
-  const contractTemperatureInsurer = m.contract("contracts/TemperatureInsurer.sol:TemperatureInsurer", [272n * 10n ** 18n]);
+  const contractTemperatureInsurer = m.contract("contracts/TemperatureInsurer.sol:TemperatureInsurer", [(274n-2n) * 10n ** 18n]);
   return { contractTemperatureInsurer };
 });
 
