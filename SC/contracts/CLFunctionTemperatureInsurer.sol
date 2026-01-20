@@ -166,7 +166,9 @@ contract CLFunctionTemperatureInsurer is FunctionsClient, ConfirmedOwner {
         longitude = _longitude;
     }
 
-    function setAdverseTemperature(uint256 _adverseTemperature) public onlyOwner {
+    function setAdverseTemperature(
+        uint256 _adverseTemperature
+    ) public onlyOwner {
         adverseTemperature = _adverseTemperature;
     }
 
@@ -184,6 +186,14 @@ contract CLFunctionTemperatureInsurer is FunctionsClient, ConfirmedOwner {
             result;
         }
         claimStatus = 0;
+    }
+
+    function resetContract() public onlyOwner {
+        adverseTemperature = 272 * 10 ** 18;
+        claimStatus = 0;
+        insured = address(0);
+        latitude = "";
+        longitude = "";
     }
 }
 

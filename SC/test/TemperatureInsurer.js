@@ -214,8 +214,15 @@ describe("TemperatureInsurer", function () {
             // wait until mined
             miningResult = await tx.wait();
             const balanceAfter = await ethers.provider.getBalance(otherAccount.address);
-            const balanceDiffCheck = (balanceBefore - balanceAfter - 11n * 10n ** 17n) < 10n ** 15n;
-
+            const balanceDiffCheck = ((-1n) * 10n ** 14n < (balanceAfter - balanceBefore - 11n * 10n ** 17n)) && ((balanceAfter - balanceBefore - 11n * 10n ** 17n) < 10n ** 14n);
+            const balanceDiff = balanceAfter - balanceBefore - 11n * 10n ** 17n;
+            console.log(`
+* C3 * balanceBefore ${balanceBefore}
+     * balanceAfter  ${balanceAfter}
+     * balanceDiff          ${balanceDiff}
+     * balanceComp          ${10n ** 14n}
+*    * balanceDiffCheck ${balanceDiffCheck}`);
+                
             expect(balanceDiffCheck).to.be.true;
         });
     });
@@ -237,7 +244,14 @@ describe("TemperatureInsurer", function () {
             // wait until mined
             miningResult = await tx.wait();
             const balanceAfter = await ethers.provider.getBalance(owner.address);
-            const balanceDiffCheck = (balanceBefore - balanceAfter - 11n * 10n ** 17n) < 10n ** 15n;
+            const balanceDiff = balanceAfter - balanceBefore - 11n * 10n ** 17n;
+            const balanceDiffCheck = ((-1n) * 10n ** 14n < (balanceAfter - balanceBefore - 11n * 10n ** 17n)) && ((balanceAfter - balanceBefore - 11n * 10n ** 17n) < 10n ** 14n);
+            console.log(`
+* R2 * balanceBefore ${balanceBefore}
+     * balanceAfter  ${balanceAfter}
+     * balanceDiff          ${balanceDiff}
+     * balanceComp          ${10n ** 14n}
+*    * balanceDiffCheck ${balanceDiffCheck}`);
 
             expect(balanceDiffCheck).to.be.true;
         });
@@ -305,4 +319,22 @@ describe("TemperatureInsurer", function () {
       .withArgs(42, "foo");
   });
 https://ethereum.stackexchange.com/questions/110004/testing-for-emitted-events-in-hardhat
+*/
+
+/*
+* C3 * balanceBefore 9_998_899_795_867_389_688_556
+     * balanceAfter  9_999_999_746_603_967_702_592
+     * balanceDiff      -2_199_950_736_578_014_036
+     * balanceComp         1000000000000000
+*    * balanceDiffCheck false
+      1) C3. Claim is paid to Insured wallet
+    Resetting the contract
+      ✔ R1. Only owner (first HardHat wallet) can reset the contract
+
+* R2 * balanceBefore 9_999_997_437_280_000_000_000
+     * balanceAfter  9_999_997_374_084_731_236_260
+     * balanceDiff      -1_099_936_804_731_236_260
+     * balanceComp         1000000000000000
+*    * balanceDiffCheck false
+      2) R2. Upon reset, premium is transferred to owner (first HardHat wallet)
 */

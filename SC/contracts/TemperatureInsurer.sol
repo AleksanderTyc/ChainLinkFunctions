@@ -80,6 +80,10 @@ contract TemperatureInsurer {
             msg.sender == owner,
             "E51: Only Owner allowed to call resetContract"
         );
+        (bool result, ) = owner.call{value: address(this).balance}("");
+        if (result) {
+            result;
+        }
         adverseTemperature = 272 * 10 ** 18;
         claimStatus = 0;
         insured = address(0);
