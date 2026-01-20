@@ -3,7 +3,7 @@ body {
     background-color: black;
 }
 
-button {
+button, .btn-gen {
     margin-top: 20px;
 
     border: none;
@@ -11,6 +11,9 @@ button {
 
     padding: 8px 16px;
     font-weight: bold;
+    width: 40%;
+    color: #fffcf2;
+    background-color: #eb5e28;
 }
 
 h1 {
@@ -20,6 +23,10 @@ h1 {
 
 p {
     color: #ccc5b9;
+}
+
+label {
+    padding-right: 10px;
 }
 
 .application-status {
@@ -39,14 +46,8 @@ p {
     padding: 10%;
 }
 
-#h1-white {
+.h-white {
     color: #fffcf2;
-}
-
-button {
-    width: 40%;
-    color: #fffcf2;
-    background-color: #eb5e28;
 }
 
 #hbar {

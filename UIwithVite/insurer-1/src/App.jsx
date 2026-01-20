@@ -184,10 +184,12 @@ function App() {
         console.log(`* I * updStatusWithTemp * formObject`, formObject);
     }
 
-    function submitBuy() {
+    function submitBuy(formData) {
+        const formLatitude = formData.get('nameLatitude');
+        const formLongitude = formData.get('nameLongitude');
         dtNowW = new Date();
-        console.log(`A461 * ${dtNowW.toISOString().substring(11, 23)} * submitBuy`);
-
+        console.log(`A461 * ${dtNowW.toISOString().substring(11, 23)} * submitBuy * formLatitude ${formLatitude}`);
+        console.log(`A462 * ${dtNowW.toISOString().substring(11, 23)} * submitBuy * formLongitude ${formLongitude}`);
     }
 
     function submitClaim() {
@@ -204,11 +206,8 @@ function App() {
             });
     }
 
-    function testFormSubmit(formData) {
-        // const formObject = Object.fromEntries(formData);
-        // console.log(`* I * testFormSubmit * formObject`, formObject);
-        const formObject = formData.get('nameAdvTemp');
-        console.log(`* I * testFormSubmit * formObject`, formObject);
+    function submitReset() {
+        console.log(`* I * submitReset`);
     }
 
     React.useEffect(
@@ -249,82 +248,104 @@ function App() {
 
     return (
         <div id="hero">
-            <h1 id="h1-white">Temperature Insurer</h1>
+            <h1 className="h-white">Temperature Insurer</h1>
             <div className="d-grid gap-2">
                 <button ref={refConnW} id="actionBtn" onClick={() => { connectWallet(); }}>Connect Wallet</button>
             </div>
-            <div className="display-account">
-                <h4 className="application-status">
-                    Status: {appStatus}
-                </h4>
-                {appStatus !== "Install Metamask" && appStatus !== "Not connected" &&
-                    <>
-                        <h4 className="walletAddress">
-                            Address: {walletAddress.length > 0 ? walletAddress : "Not connected"}
-                        </h4>
-                    </>
-                }
-                <h3>Contract Data</h3>
-                {appStatus !== "Install Metamask" && appStatus !== "Not connected" &&
-                    <>
-                        <h4 className="walletAddress">
-                            Owner: {cOwner}
-                        </h4>
-                        <h4 className="walletAddress">
-                            Contract Status: {cStatus}
-                        </h4>
-                        <h4 className="walletAddress">
-                            Claim Status: {cClaimStatus}
-                        </h4>
-                        <h4 className="walletAddress">
-                            Premium: {cPremium}
-                        </h4>
-                        <h4 className="walletAddress">
-                            Adverse Temperature: {cAdverseTemperature}
-                        </h4>
-                        <h4 className="walletAddress">
-                            Insured: {cInsured}
-                        </h4>
-                        <h4 className="walletAddress">
-                            Latitude: {cLatitude}
-                        </h4>
-                        <h4 className="walletAddress">
-                            Longitude: {cLongitude}
-                        </h4>
-                    </>
-                }
-            </div>
+            <div id="hbar"></div>
+            <h4 className="application-status">
+                Status: {appStatus}
+            </h4>
+            {appStatus !== "Install Metamask" && appStatus !== "Not connected" &&
+                <p>
+                    MM selected address: {walletAddress.length > 0 ? walletAddress : "Not connected"}
+                </p>
+            }
+            <div id="hbar"></div>
+            <h1 className="h-white">Contract Data</h1>
+            {appStatus !== "Install Metamask" && appStatus !== "Not connected" &&
+                <>
+                    <p>
+                        Owner: {cOwner}
+                    </p>
+                    <p>
+                        Contract Status: {cStatus}
+                    </p>
+                    <p>
+                        Claim Status: {cClaimStatus}
+                    </p>
+                    <p>
+                        Premium: {cPremium}
+                    </p>
+                    <p>
+                        Adverse Temperature: {cAdverseTemperature}
+                    </p>
+                    <p>
+                        Insured: {cInsured}
+                    </p>
+                    <p>
+                        Latitude: {cLatitude}
+                    </p>
+                    <p>
+                        Longitude: {cLongitude}
+                    </p>
+                </>
+            }
             <section>
                 <div id="hbar"></div>
-                <h1>Update Adverse Temperature</h1>
+                <h1 className="h-white">Update Adverse Temperature</h1>
                 <form action={updAdvTemp}>
-                    <label htmlFor='inpAdvTemp'>New Adverse Temperature:</label>
-                    <input id='inpAdvTemp' name='nameAdvTemp' type='number' required min={-80} max={50} step={0.1} defaultValue={-2.5} />
-                    <input type='submit' value='Set' />
+                    <p>
+                        <label htmlFor='inpAdvTemp'>New Adverse Temperature:</label>
+                        <input id='inpAdvTemp' name='nameAdvTemp' type='number' required min={-80} max={50} step={0.1} defaultValue={-2.5} />
+                    </p>
+                    <input className="btn-gen" type='submit' value='Set' />
                 </form>
             </section>
             <section>
                 <div id="hbar"></div>
-                <h1>Force-update Status</h1>
+                <h1 className="h-white">Force-update Status</h1>
                 <form action={updStatus}>
-                    <label htmlFor='inpStatus'>New Status:</label>
-                    <input id='inpStatus' name='nameStatus' type='number' required min={0} max={100} defaultValue={2} />
-                    <input type='submit' value='Set' />
+                    <p>
+                        <label htmlFor='inpStatus'>New Status:</label>
+                        <input id='inpStatus' name='nameStatus' type='number' required min={0} max={100} defaultValue={2} />
+                    </p>
+                    <input className="btn-gen" type='submit' value='Set' />
                 </form>
             </section>
             <section>
                 <div id="hbar"></div>
-                <h1>Update Status with Temperature</h1>
+                <h1 className="h-white">Update Status with Temperature</h1>
                 <form action={updStatusWithTemp}>
-                    <label htmlFor='inpStatusTemp'>New Current Temperature:</label>
-                    <input id='inpStatusTemp' name='nameStatusTemp' type='number' required min={-80} max={50} step={0.1} defaultValue={9.5} />
-                    <input type='submit' value='Set' />
+                    <p>
+                        <label htmlFor='inpStatusTemp'>New Current Temperature:</label>
+                        <input id='inpStatusTemp' name='nameStatusTemp' type='number' required min={-80} max={50} step={0.1} defaultValue={9.5} />
+                    </p>
+                    <input className="btn-gen" type='submit' value='Set' />
                 </form>
             </section>
-            <div id="passwds-cont">
-                <button id="inc-btn" onClick={submitBuy}>Buy</button>
-                <button id="upd-btn" onClick={submitClaim}>Claim</button>
-            </div>
+            <section>
+                <div id="hbar"></div>
+                <h1 className="h-white">Contract Purchase</h1>
+                <form action={submitBuy}>
+                    <p>
+                        <label htmlFor='inpLatitude'>Latitude insured:</label>
+                        <input id='inpLatitude' name='nameLatitude' type='number' required min={-90} max={90} step={0.0000000000001} defaultValue={53.1222619761935} />
+                    </p>
+                    <p>
+                        <label htmlFor='inpLongitude'>Longitude insured:</label>
+                        <input id='inpLongitude' name='nameLongitude' type='number' required min={-180} max={180} step={0.0000000000001} defaultValue={17.9989758234834} />
+                    </p>
+                    <input className="btn-gen" type='submit' value='Buy' />
+                </form>
+            </section>
+            <section>
+                <div id="hbar"></div>
+                <div id="passwds-cont">
+                    <button id="inc-btn" onClick={submitReset}>Contract Reset</button>
+                    <button id="upd-btn" onClick={submitClaim}>Claim</button>
+                </div>
+            </section>
         </div>
     );
 }
