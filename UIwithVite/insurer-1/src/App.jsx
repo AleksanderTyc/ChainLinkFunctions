@@ -1,7 +1,16 @@
 import React from 'react';
 
 /* BC - related */
-import { ABIGetter, getBalance, cSetClaimStatus, cClaim } from './TemperatureInsurer_ABI';
+import {
+    ABIGetter,
+    getBalance,
+    cInsure,
+    cSetClaim,
+    cSetAdverseTemperature,
+    cSetClaimStatus,
+    cClaim,
+    cResetContract
+} from './TemperatureInsurer_ABI';
 
 /* MetaMask */
 /*
@@ -28,12 +37,13 @@ function App() {
 
     const [cStatus, setCStatus] = React.useState("");
     const [cOwner, setCOwner] = React.useState("");
-    const [cClaimStatus, setCClaimStatus] = React.useState("");
     const [cPremium, setCPremium] = React.useState("");
-    const [cAdverseTemperature, setAdverseTemperature] = React.useState("");
+    const [cAdverseTemperature, setAdverseTemperature] = React.useState(0);
     const [cInsured, setCInsured] = React.useState("");
     const [cLatitude, setCLatitude] = React.useState("");
     const [cLongitude, setCLongitude] = React.useState("");
+    const [cCurrTemperature, setCurrTemperature] = React.useState(0);
+    const [cClaimStatus, setCClaimStatus] = React.useState("");
 
 
     function handleAccountChange(accounts) {
@@ -123,6 +133,9 @@ function App() {
             ABIGetter(TemperatureInsurer_Interface.addressContract, "get_longitude").then(
                 result => setCLongitude(result)
             );
+            ABIGetter(TemperatureInsurer_Interface.addressContract, "get_temperature").then(
+                result => setCurrTemperature((Number(result / (10n ** 15n)) / 1000 - 274).toFixed(1))
+            );
         } else {
             console.log(`A249 * ${dtNowW.toISOString().substring(11, 23)} * handleAccountChange * accounts is empty`);
             setWalletAddress("");
@@ -153,43 +166,68 @@ function App() {
         }
     };
 
-    function updAdvTemp(formData) {
-        // const formObject = Object.fromEntries(formData);
-        // console.log(`* I * testFormSubmit * formObject`, formObject);
-        const formObject = formData.get('nameAdvTemp');
-        console.log(`* I * updAdvTemp * formObject`, formObject);
-    }
-
-    function updStatus(formData) {
-        const formObject = Number(formData.get('nameStatus'));
-        /*
-        dtNowW = new Date();
-        console.log(`A411 * ${dtNowW.toISOString().substring(11, 23)} * updStatus * formObject`, formObject, typeof formObject);
-        */
-        cSetClaimStatus(TemperatureInsurer_Interface.addressContract, formObject)
-            .then(result => {
-                const dtNow = new Date();
-                console.log(`A4111 * ${dtNow.toISOString().substring(11, 23)} * updStatus * result`, result);
-            })
-            .catch(error => {
-                const dtNow = new Date();
-                console.error(`A4119 * ${dtNow.toISOString().substring(11, 23)} * updStatus * error`, error);
-            });
-    }
-
-    function updStatusWithTemp(formData) {
-        // const formObject = Object.fromEntries(formData);
-        // console.log(`* I * testFormSubmit * formObject`, formObject);
-        const formObject = formData.get('nameStatusTemp');
-        console.log(`* I * updStatusWithTemp * formObject`, formObject);
-    }
-
     function submitBuy(formData) {
         const formLatitude = formData.get('nameLatitude');
         const formLongitude = formData.get('nameLongitude');
         dtNowW = new Date();
-        console.log(`A461 * ${dtNowW.toISOString().substring(11, 23)} * submitBuy * formLatitude ${formLatitude}`);
-        console.log(`A462 * ${dtNowW.toISOString().substring(11, 23)} * submitBuy * formLongitude ${formLongitude}`);
+        console.log(`A411 * ${dtNowW.toISOString().substring(11, 23)} * submitBuy * formLatitude ${formLatitude}`);
+        console.log(`A412 * ${dtNowW.toISOString().substring(11, 23)} * submitBuy * formLongitude ${formLongitude}`);
+        cInsure(TemperatureInsurer_Interface.addressContract, formLatitude, formLongitude)
+            .then(result => {
+                const dtNow = new Date();
+                console.log(`A4111 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * result`, result);
+            })
+            .catch(error => {
+                const dtNow = new Date();
+                console.error(`A4119 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * error`, error);
+            });
+    }
+
+    function updStatusWithTemp(formData) {
+        const formTemperature = formData.get('nameStatusTemp');
+        dtNowW = new Date();
+        console.log(`A421 * ${dtNowW.toISOString().substring(11, 23)} * updStatusWithTemp * formTemperature ${formTemperature}`);
+        const calcTemperature = BigInt((274 + Number(formTemperature)) *1000) * 10n ** 15n;
+        console.log(`A422 * ${dtNowW.toISOString().substring(11, 23)} * updStatusWithTemp * calcTemperature ${calcTemperature}`);
+        cSetClaim(TemperatureInsurer_Interface.addressContract, calcTemperature)
+            .then(result => {
+                const dtNow = new Date();
+                console.log(`A4211 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * result`, result);
+            })
+            .catch(error => {
+                const dtNow = new Date();
+                console.log(`A4219 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * error`, error);
+            });
+    }
+
+    function updAdvTemp(formData) {
+        const formTemperature = formData.get('nameAdvTemp');
+        dtNowW = new Date();
+        console.log(`A431 * ${dtNowW.toISOString().substring(11, 23)} * updAdvTemp * formTemperature ${formTemperature}`);
+        const calcTemperature = BigInt((274 + Number(formTemperature)) *1000) * 10n ** 15n;
+        console.log(`A432 * ${dtNowW.toISOString().substring(11, 23)} * updAdvTemp * calcTemperature ${calcTemperature}`);
+        cSetAdverseTemperature(TemperatureInsurer_Interface.addressContract, calcTemperature)
+            .then(result => {
+                const dtNow = new Date();
+                console.log(`A4311 * ${dtNow.toISOString().substring(11, 23)} * updAdvTemp * result`, result);
+            })
+            .catch(error => {
+                const dtNow = new Date();
+                console.log(`A4319 * ${dtNow.toISOString().substring(11, 23)} * updAdvTemp * error`, error);
+            });
+    }
+
+    function updStatus(formData) {
+        const formObject = formData.get('nameStatus');
+        cSetClaimStatus(TemperatureInsurer_Interface.addressContract, BigInt(formObject))
+            .then(result => {
+                const dtNow = new Date();
+                console.log(`A4411 * ${dtNow.toISOString().substring(11, 23)} * updStatus * result`, result);
+            })
+            .catch(error => {
+                const dtNow = new Date();
+                console.error(`A4419 * ${dtNow.toISOString().substring(11, 23)} * updStatus * error`, error);
+            });
     }
 
     function submitClaim() {
@@ -207,7 +245,17 @@ function App() {
     }
 
     function submitReset() {
-        console.log(`* I * submitReset`);
+        dtNowW = new Date();
+        console.log(`A461 * ${dtNowW.toISOString().substring(11, 23)} * submitReset`);
+        cResetContract(TemperatureInsurer_Interface.addressContract)
+            .then(result => {
+                const dtNow = new Date();
+                console.log(`A4611 * ${dtNow.toISOString().substring(11, 23)} * submitReset * result`, result);
+            })
+            .catch(error => {
+                const dtNow = new Date();
+                console.error(`A4619 * ${dtNow.toISOString().substring(11, 23)} * submitReset * error`, error);
+            });
     }
 
     React.useEffect(
@@ -254,7 +302,7 @@ function App() {
             </div>
             <div id="hbar"></div>
             <h4 className="application-status">
-                Status: {appStatus}
+                Application Status / Role: {appStatus}
             </h4>
             {appStatus !== "Install Metamask" && appStatus !== "Not connected" &&
                 <p>
@@ -272,22 +320,25 @@ function App() {
                         Contract Status: {cStatus}
                     </p>
                     <p>
-                        Claim Status: {cClaimStatus}
-                    </p>
-                    <p>
-                        Premium: {cPremium}
-                    </p>
-                    <p>
                         Adverse Temperature: {cAdverseTemperature}
                     </p>
                     <p>
                         Insured: {cInsured}
                     </p>
                     <p>
+                        Premium: {cPremium}
+                    </p>
+                    <p>
                         Latitude: {cLatitude}
                     </p>
                     <p>
                         Longitude: {cLongitude}
+                    </p>
+                    <p>
+                        Current Temperature: {cCurrTemperature}
+                    </p>
+                    <p>
+                        Claim Status: {cClaimStatus}
                     </p>
                 </>
             }

@@ -24,12 +24,6 @@ const TemperatureInsurer_ABI = [
         evmSignature: ethers.id("adverseTemperature()").substring(0, 10)
     },
     {
-        solSignature: "function claimStatus() public view returns (uint256)",
-        callSign: "get_claimStatus",
-        returns: "uint256",
-        evmSignature: ethers.id("claimStatus()").substring(0, 10)
-    },
-    {
         solSignature: "function insured() public view returns (string)",
         callSign: "get_insured",
         returns: "address",
@@ -47,11 +41,23 @@ const TemperatureInsurer_ABI = [
         returns: "string",
         evmSignature: ethers.id("longitude()").substring(0, 10)
     },
+    {
+        solSignature: "function temperature() public view returns (uint256)",
+        callSign: "get_temperature",
+        returns: "uint256",
+        evmSignature: ethers.id("temperature()").substring(0, 10)
+    },
+    {
+        solSignature: "function claimStatus() public view returns (uint256)",
+        callSign: "get_claimStatus",
+        returns: "uint256",
+        evmSignature: ethers.id("claimStatus()").substring(0, 10)
+    },
 
     {
         solSignature: "function insure(string calldata,string calldata) public payable",
         callSign: "call_insure",
-        evmSignature: ethers.id("insure(string calldata,string calldata)").substring(0, 10)
+        evmSignature: ethers.id("insure(string,string)").substring(0, 10)
     },
     {
         solSignature: "function setClaim(uint256) public",
@@ -72,6 +78,11 @@ const TemperatureInsurer_ABI = [
         solSignature: "function claim() public",
         callSign: "call_claim",
         evmSignature: ethers.id("claim()").substring(0, 10)
+    },
+    {
+        solSignature: "function resetContract() public",
+        callSign: "call_resetContract",
+        evmSignature: ethers.id("resetContract()").substring(0, 10)
     }
 ];
 
@@ -162,6 +173,109 @@ function ABIGetter_sync(contractAddress, functionCallSign) {
     });
 }
 
+function cInsure(contractAddress, cLatitude, cLongitude) {
+    const item = TemperatureInsurer_ABI.find(contractFunction => 'call_insure' === contractFunction.callSign);
+
+    return new Promise((resolve, reject) => {
+        try {
+            const cdr = ethers.AbiCoder.defaultAbiCoder();
+            const encodedData = cdr.encode(['string', 'string'], [cLatitude, cLongitude]).substring(2);
+
+            const dtNow = new Date();
+            console.log(`D1311 * ${dtNow.toISOString().substring(11, 23)} * cInsure * evmSignature + encodedData ${item.evmSignature + encodedData}`);
+
+            resolve(window.ethereum.request(
+                {
+                    method: "eth_sendTransaction",
+                    params: [
+                        {
+                            from: window.ethereum.selectedAddress,
+                            to: contractAddress,
+                            value: ethers.formatUnits(ethers.parseEther("1.1"), "wei"),
+                            data: item.evmSignature + encodedData
+                            // chainId: "0x7a69" // 31337 HardHat
+                        }]
+                }
+            ));
+        }
+        catch (err) {
+            reject(err);
+        }
+    });
+}
+/*
+[
+	"0x8e1503a100000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000001035332e3132323236313937363139333500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001031372e3939383937353832333438333400000000000000000000000000000000"
+]
+0x8e1503a1
+0000000000000000000000000000000000000000000000000000000000000040
+0000000000000000000000000000000000000000000000000000000000000080
+0000000000000000000000000000000000000000000000000000000000000010
+35332e3132323236313937363139333500000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000010
+31372e3939383937353832333438333400000000000000000000000000000000
+
+0x8e1503a1
+0000000000000000000000000000000000000000000000000000000000000040
+0000000000000000000000000000000000000000000000000000000000000080
+0000000000000000000000000000000000000000000000000000000000000010
+35332e3132323236313937363139333500000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000010
+31372e3939383937353832333438333400000000000000000000000000000000
+*/
+
+function cSetClaim(contractAddress, cTemperature) {
+    const item = TemperatureInsurer_ABI.find(contractFunction => 'call_setClaim' === contractFunction.callSign);
+
+    return new Promise((resolve, reject) => {
+        try {
+            const cdr = ethers.AbiCoder.defaultAbiCoder();
+            const encodedData = cdr.encode(['uint256'], [cTemperature]).substring(2);
+            resolve(window.ethereum.request(
+                {
+                    method: "eth_sendTransaction",
+                    params: [
+                        {
+                            from: window.ethereum.selectedAddress,
+                            to: contractAddress,
+                            data: item.evmSignature + encodedData
+                            // chainId: "0x7a69" // 31337 HardHat
+                        }]
+                }
+            ));
+        }
+        catch (err) {
+            reject(err);
+        }
+    });
+}
+
+function cSetAdverseTemperature(contractAddress, cAdvTemperature) {
+    const item = TemperatureInsurer_ABI.find(contractFunction => 'call_setAdverseTemperature' === contractFunction.callSign);
+
+    return new Promise((resolve, reject) => {
+        try {
+            const cdr = ethers.AbiCoder.defaultAbiCoder();
+            const encodedData = cdr.encode(['uint256'], [cAdvTemperature]).substring(2);
+            resolve(window.ethereum.request(
+                {
+                    method: "eth_sendTransaction",
+                    params: [
+                        {
+                            from: window.ethereum.selectedAddress,
+                            to: contractAddress,
+                            data: item.evmSignature + encodedData
+                            // chainId: "0x7a69" // 31337 HardHat
+                        }]
+                }
+            ));
+        }
+        catch (err) {
+            reject(err);
+        }
+    });
+}
+
 function cSetClaimStatus(contractAddress, cStatus = 2) {
     const item = TemperatureInsurer_ABI.find(contractFunction => 'call_setClaimStatus' === contractFunction.callSign);
 
@@ -215,7 +329,7 @@ function cClaim(contractAddress) {
     const item = TemperatureInsurer_ABI.find(contractFunction => 'call_claim' === contractFunction.callSign);
 
     const dtNow = new Date();
-    console.log(`D1121 * ${dtNow.toISOString().substring(11, 23)} * cClaim * selectedAddress ${window.ethereum.selectedAddress}`);
+    console.log(`D1211 * ${dtNow.toISOString().substring(11, 23)} * cClaim * selectedAddress ${window.ethereum.selectedAddress}`);
 
     return new Promise((resolve, reject) => {
         try {
@@ -235,13 +349,41 @@ function cClaim(contractAddress) {
         catch (err) {
             reject(err);
         }
-    }
-    );
+    });
+}
+
+function cResetContract(contractAddress) {
+    const item = TemperatureInsurer_ABI.find(contractFunction => 'call_resetContract' === contractFunction.callSign);
+
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(window.ethereum.request(
+                {
+                    method: "eth_sendTransaction",
+                    params: [
+                        {
+                            from: window.ethereum.selectedAddress,
+                            to: contractAddress,
+                            data: item.evmSignature
+                            // chainId: "0x7a69" // 31337 HardHat
+                        }]
+                }
+            ));
+        }
+        catch (err) {
+            reject(err);
+        }
+    });
+
 }
 
 export {
     ABIGetter,
     getBalance,
+    cInsure,
+    cSetClaim,
+    cSetAdverseTemperature,
     cSetClaimStatus,
-    cClaim
+    cClaim,
+    cResetContract
 };
