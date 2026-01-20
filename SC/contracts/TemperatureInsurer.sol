@@ -49,12 +49,18 @@ contract TemperatureInsurer {
     }
 
     function setAdverseTemperature(uint256 _adverseTemperature) public {
-        require(msg.sender == owner, "E42: Only Owner allowed to call setAdverseTemperature");
+        require(
+            msg.sender == owner,
+            "E42: Only Owner allowed to call setAdverseTemperature"
+        );
         adverseTemperature = _adverseTemperature;
     }
 
     function setClaimStatus(uint256 _claimStatus) public {
-        require(msg.sender == owner, "E41: Only Owner allowed to call setClaimStatus");
+        require(
+            msg.sender == owner,
+            "E41: Only Owner allowed to call setClaimStatus"
+        );
         claimStatus = _claimStatus;
     }
 
@@ -67,5 +73,17 @@ contract TemperatureInsurer {
             result;
         }
         claimStatus = 0;
+    }
+
+    function resetContract() public {
+        require(
+            msg.sender == owner,
+            "E51: Only Owner allowed to call resetContract"
+        );
+        adverseTemperature = 272 * 10 ** 18;
+        claimStatus = 0;
+        insured = address(0);
+        latitude = "";
+        longitude = "";
     }
 }

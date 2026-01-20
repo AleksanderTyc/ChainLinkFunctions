@@ -219,6 +219,79 @@ describe("TemperatureInsurer", function () {
             expect(balanceDiffCheck).to.be.true;
         });
     });
+    describe("Resetting the contract", function () {
+        let tx = null;
+        let miningResult = null;
+
+        it("R1. Only owner (first HardHat wallet) can reset the contract", async function () {
+            const { contractTemperatureInsurer, owner, otherAccount } = await loadFixture(insureTemperatureInsurerFixture);
+            await expect(contractTemperatureInsurer.connect(otherAccount).resetContract()).to.be.revertedWith("E51: Only Owner allowed to call resetContract");
+        });
+        it("R2. Upon reset, premium is transferred to owner (first HardHat wallet)", async function () {
+            const { contractTemperatureInsurer, owner, otherAccount } = await loadFixture(insureTemperatureInsurerFixture);
+
+            const balanceBefore = await ethers.provider.getBalance(owner.address);
+
+            // initiate the transaction
+            tx = await contractTemperatureInsurer.connect(owner).resetContract();
+            // wait until mined
+            miningResult = await tx.wait();
+            const balanceAfter = await ethers.provider.getBalance(owner.address);
+            const balanceDiffCheck = (balanceBefore - balanceAfter - 11n * 10n ** 17n) < 10n ** 15n;
+
+            expect(balanceDiffCheck).to.be.true;
+        });
+        it("R3. Upon reset, claim status is set to 0", async function () {
+            const { contractTemperatureInsurer, owner, otherAccount } = await loadFixture(insureTemperatureInsurerFixture);
+
+            // initiate the transaction
+            tx = await contractTemperatureInsurer.connect(owner).resetContract();
+            // wait until mined
+            miningResult = await tx.wait();
+
+            expect(await contractTemperatureInsurer.claimStatus()).to.equal(0);
+        });
+        it("R4. Upon reset, insured is set to address(0)", async function () {
+            const { contractTemperatureInsurer, owner, otherAccount } = await loadFixture(insureTemperatureInsurerFixture);
+
+            // initiate the transaction
+            tx = await contractTemperatureInsurer.connect(owner).resetContract();
+            // wait until mined
+            miningResult = await tx.wait();
+
+            expect(await contractTemperatureInsurer.insured()).to.equal("0x0000000000000000000000000000000000000000");
+        });
+        it("R5. Upon reset, adverseTemperature is set to 272E+18 (i.e. -2C)", async function () {
+            const { contractTemperatureInsurer, owner, otherAccount } = await loadFixture(insureTemperatureInsurerFixture);
+
+            // initiate the transaction
+            tx = await contractTemperatureInsurer.connect(owner).resetContract();
+            // wait until mined
+            miningResult = await tx.wait();
+
+            expect(await contractTemperatureInsurer.adverseTemperature()).to.equal(272n * 10n ** 18n);
+        });
+        it("R6. Upon reset, latitude is set to empty", async function () {
+            const { contractTemperatureInsurer, owner, otherAccount } = await loadFixture(insureTemperatureInsurerFixture);
+
+            // initiate the transaction
+            tx = await contractTemperatureInsurer.connect(owner).resetContract();
+            // wait until mined
+            miningResult = await tx.wait();
+
+            expect(await contractTemperatureInsurer.latitude()).to.equal("");
+        });
+        it("R7. Upon reset, longitude is set to empty", async function () {
+            const { contractTemperatureInsurer, owner, otherAccount } = await loadFixture(insureTemperatureInsurerFixture);
+
+            // initiate the transaction
+            tx = await contractTemperatureInsurer.connect(owner).resetContract();
+            // wait until mined
+            miningResult = await tx.wait();
+
+            expect(await contractTemperatureInsurer.longitude()).to.equal("");
+        });
+    });
 });
 
 /* Test for event emitted
