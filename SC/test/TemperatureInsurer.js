@@ -177,6 +177,16 @@ describe("TemperatureInsurer", function () {
                 .to.emit(contractTemperatureInsurer, "Adverse")
                 .withArgs(owner.address, 266n * 10n ** 18n);
         });
+        it("S7. Setting the claim records temperature", async function () {
+            const { contractTemperatureInsurer, owner, otherAccount } = await loadFixture(insureTemperatureInsurerFixture);
+
+            // initiate the transaction
+            tx = await contractTemperatureInsurer.connect(owner).setClaim((274n+28n) * 10n ** 18n);
+            // wait until mined
+            miningResult = await tx.wait();
+
+            expect(await contractTemperatureInsurer.temperature()).to.equal((274n+28n) * 10n ** 18n);
+        });
         it("S11. Only owner (first HardHat wallet) can force-set claim status", async function () {
             const { contractTemperatureInsurer, owner, otherAccount } = await loadFixture(insureTemperatureInsurerFixture);
             await expect(contractTemperatureInsurer.connect(otherAccount).setClaimStatus(101)).to.be.revertedWith("E41: Only Owner allowed to call setClaimStatus");
@@ -304,6 +314,16 @@ describe("TemperatureInsurer", function () {
             miningResult = await tx.wait();
 
             expect(await contractTemperatureInsurer.longitude()).to.equal("");
+        });
+        it("R8. Upon reset, temperature is set to 0", async function () {
+            const { contractTemperatureInsurer, owner, otherAccount } = await loadFixture(insureTemperatureInsurerFixture);
+
+            // initiate the transaction
+            tx = await contractTemperatureInsurer.connect(owner).resetContract();
+            // wait until mined
+            miningResult = await tx.wait();
+
+            expect(await contractTemperatureInsurer.temperature()).to.equal(0);
         });
     });
 });

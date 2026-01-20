@@ -7,11 +7,13 @@ pragma solidity ^0.8.28;
 contract TemperatureInsurer {
     address public owner;
     uint256 public adverseTemperature;
-    uint256 public claimStatus;
 
     address public insured;
     string public latitude;
     string public longitude;
+
+    uint256 public temperature;
+    uint256 public claimStatus;
 
     // Event to record adverse event
     event Adverse(address indexed sender, uint256 temperature);
@@ -42,6 +44,7 @@ contract TemperatureInsurer {
             "E22: Claim Status must be 1 when calling setClaim"
         );
         require(msg.sender == owner, "E21: Only Owner allowed to setClaim");
+        temperature = _temperature;
         if (_temperature < adverseTemperature) {
             claimStatus = 2;
             emit Adverse(msg.sender, _temperature);
@@ -72,7 +75,11 @@ contract TemperatureInsurer {
         if (result) {
             result;
         }
+        adverseTemperature = 272 * 10 ** 18;
         claimStatus = 0;
+        insured = address(0);
+        latitude = "";
+        longitude = "";
     }
 
     function resetContract() public {
