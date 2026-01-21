@@ -9,7 +9,8 @@ import {
     cSetAdverseTemperature,
     cSetClaimStatus,
     cClaim,
-    cResetContract
+    cResetContract,
+    checkTxIndex
 } from './TemperatureInsurer_ABI';
 
 /* MetaMask */
@@ -46,6 +47,89 @@ function App() {
     const [cClaimStatus, setCClaimStatus] = React.useState("");
 
 
+    function refreshContractData(accounts=[window.ethereum.selectedAddress]) {
+        Promise.all(
+            [
+                ABIGetter(TemperatureInsurer_Interface.addressContract, "get_owner").then(
+                    result => {
+                        setCOwner(result);
+                        return result;
+                    }
+                ),
+                ABIGetter(TemperatureInsurer_Interface.addressContract, "get_claimStatus").then(
+                    result => {
+                        setCClaimStatus(result);
+                        return result;
+                    }
+                ),
+                ABIGetter(TemperatureInsurer_Interface.addressContract, "get_insured").then(
+                    result => {
+                        setCInsured(result);
+                        return result;
+                    }
+                )
+            ]
+        ).then(
+            result => {
+                const dtNow = new Date();
+                console.log(`A251 * ${dtNow.toISOString().substring(11, 23)} * Promise.all * result`, result);
+                if (result[0].toLowerCase() === accounts[0].toLowerCase()) {
+                    setAppStatus('Owner');
+                    switch (result[1]) {
+                        case 0n:
+                            setCStatus('Contract Available');
+                            break;
+                        case 1n:
+                            setCStatus('Contract Purchased');
+                            break;
+                        default:
+                            setCStatus('Contract Claimable');
+                    }
+                } else if (result[2].toLowerCase() === accounts[0].toLowerCase()) {
+                    setAppStatus('Insured');
+                    switch (result[1]) {
+                        case 0n:
+                        case 1n:
+                            setCStatus('Claim not Available');
+                            break;
+                        default:
+                            setCStatus('Claim Available');
+                    }
+                } else {
+                    setAppStatus('3rd Party');
+                    switch (result[1]) {
+                        case 0n:
+                            setCStatus('Contract Available');
+                            break;
+                        default:
+                            setCStatus('Contract Not Available');
+                    }
+                }
+
+            }
+        ).catch(
+            error => {
+                const dtNow = new Date();
+                console.log(`A259 * ${dtNow.toISOString().substring(11, 23)} * Promise.all * error`, error.message);
+            }
+        );
+        getBalance(TemperatureInsurer_Interface.addressContract).then(
+            result => setCPremium(result)
+        );
+        ABIGetter(TemperatureInsurer_Interface.addressContract, "get_adverseTemperature").then(
+            result => setAdverseTemperature((Number(result / (10n ** 15n)) / 1000 - 274).toFixed(1))
+        );
+        ABIGetter(TemperatureInsurer_Interface.addressContract, "get_latitude").then(
+            result => setCLatitude(result)
+        );
+        ABIGetter(TemperatureInsurer_Interface.addressContract, "get_longitude").then(
+            result => setCLongitude(result)
+        );
+        ABIGetter(TemperatureInsurer_Interface.addressContract, "get_temperature").then(
+            result => setCurrTemperature((Number(result / (10n ** 15n)) / 1000 - 274).toFixed(1))
+        );
+    }
+
     function handleAccountChange(accounts) {
         dtNowW = new Date();
         console.log(`A240 * ${dtNowW.toISOString().substring(11, 23)} * handleAccountChange`);
@@ -55,7 +139,7 @@ function App() {
             console.log(`A243 * ${dtNowW.toISOString().substring(11, 23)} * handleAccountChange * selectedAddress ${window.ethereum.selectedAddress}`);
             setWalletAddress(accounts[0]);
             setAppStatus('Connected');
-
+            // refreshContractData(); - start
             Promise.all(
                 [
                     ABIGetter(TemperatureInsurer_Interface.addressContract, "get_owner").then(
@@ -136,6 +220,8 @@ function App() {
             ABIGetter(TemperatureInsurer_Interface.addressContract, "get_temperature").then(
                 result => setCurrTemperature((Number(result / (10n ** 15n)) / 1000 - 274).toFixed(1))
             );
+            // refreshContractData(); - end
+
         } else {
             console.log(`A249 * ${dtNowW.toISOString().substring(11, 23)} * handleAccountChange * accounts is empty`);
             setWalletAddress("");
@@ -176,6 +262,12 @@ function App() {
             .then(result => {
                 const dtNow = new Date();
                 console.log(`A4111 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * result`, result);
+                return checkTxIndex(result);
+            })
+            .then(txReturn => {
+                const dtNow = new Date();
+                console.log(`A4112 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * txReturn`, txReturn.transactionIndex);
+                refreshContractData();
             })
             .catch(error => {
                 const dtNow = new Date();
@@ -187,12 +279,30 @@ function App() {
         const formTemperature = formData.get('nameStatusTemp');
         dtNowW = new Date();
         console.log(`A421 * ${dtNowW.toISOString().substring(11, 23)} * updStatusWithTemp * formTemperature ${formTemperature}`);
-        const calcTemperature = BigInt((274 + Number(formTemperature)) *1000) * 10n ** 15n;
+        const calcTemperature = BigInt((274 + Number(formTemperature)) * 1000) * 10n ** 15n;
         console.log(`A422 * ${dtNowW.toISOString().substring(11, 23)} * updStatusWithTemp * calcTemperature ${calcTemperature}`);
+        setCStatus(currStatus => currStatus+' ... updating');
         cSetClaim(TemperatureInsurer_Interface.addressContract, calcTemperature)
             .then(result => {
                 const dtNow = new Date();
                 console.log(`A4211 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * result`, result);
+                return checkTxIndex(result);
+            })
+            .then(txReturn => {
+                const dtNow = new Date();
+                console.log(`A4212 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * txReturn`, txReturn.transactionIndex);
+                if (txReturn.transactionIndex === null) {
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => resolve(checkTxIndex(txReturn.hash)), 5000)
+                    });
+                } else {
+                    return txReturn;
+                }
+            })
+            .then(txReturn => {
+                const dtNow = new Date();
+                console.log(`A4112 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * txReturn`, txReturn.transactionIndex);
+                refreshContractData();
             })
             .catch(error => {
                 const dtNow = new Date();
@@ -204,7 +314,7 @@ function App() {
         const formTemperature = formData.get('nameAdvTemp');
         dtNowW = new Date();
         console.log(`A431 * ${dtNowW.toISOString().substring(11, 23)} * updAdvTemp * formTemperature ${formTemperature}`);
-        const calcTemperature = BigInt((274 + Number(formTemperature)) *1000) * 10n ** 15n;
+        const calcTemperature = BigInt((274 + Number(formTemperature)) * 1000) * 10n ** 15n;
         console.log(`A432 * ${dtNowW.toISOString().substring(11, 23)} * updAdvTemp * calcTemperature ${calcTemperature}`);
         cSetAdverseTemperature(TemperatureInsurer_Interface.addressContract, calcTemperature)
             .then(result => {

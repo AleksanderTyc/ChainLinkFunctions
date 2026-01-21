@@ -374,7 +374,22 @@ function cResetContract(contractAddress) {
             reject(err);
         }
     });
+}
 
+function checkTxIndex(txHash) {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(window.ethereum.request(
+                {
+                    method: "eth_getTransactionByHash",
+                    params: [txHash]
+                }
+            ));
+        }
+        catch (err) {
+            reject(err);
+        }
+    });
 }
 
 export {
@@ -385,5 +400,6 @@ export {
     cSetAdverseTemperature,
     cSetClaimStatus,
     cClaim,
-    cResetContract
+    cResetContract,
+    checkTxIndex
 };
