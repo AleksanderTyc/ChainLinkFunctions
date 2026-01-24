@@ -140,90 +140,6 @@ function App() {
             setWalletAddress(accounts[0]);
             setAppStatus('Connected');
             refreshContractData(accounts);
-            /*
-            Promise.all(
-                [
-                    ABIGetter(TemperatureInsurer_Interface.addressContract, "get_owner").then(
-                        result => {
-                            setCOwner(result);
-                            return result;
-                        }
-                    ),
-                    ABIGetter(TemperatureInsurer_Interface.addressContract, "get_claimStatus").then(
-                        result => {
-                            setCClaimStatus(result);
-                            return result;
-                        }
-                    ),
-                    ABIGetter(TemperatureInsurer_Interface.addressContract, "get_insured").then(
-                        result => {
-                            setCInsured(result);
-                            return result;
-                        }
-                    )
-                ]
-            ).then(
-                result => {
-                    const dtNow = new Date();
-                    console.log(`A251 * ${dtNow.toISOString().substring(11, 23)} * Promise.all * result`, result);
-                    if (result[0].toLowerCase() === accounts[0].toLowerCase()) {
-                        setAppStatus('Owner');
-                        switch (result[1]) {
-                            case 0n:
-                                setCStatus('Contract Available');
-                                break;
-                            case 1n:
-                                setCStatus('Contract Purchased');
-                                break;
-                            default:
-                                setCStatus('Contract Claimable');
-                        }
-                    } else if (result[2].toLowerCase() === accounts[0].toLowerCase()) {
-                        setAppStatus('Insured');
-                        switch (result[1]) {
-                            case 0n:
-                            case 1n:
-                                setCStatus('Claim not Available');
-                                break;
-                            default:
-                                setCStatus('Claim Available');
-                        }
-                    } else {
-                        setAppStatus('3rd Party');
-                        switch (result[1]) {
-                            case 0n:
-                                setCStatus('Contract Available');
-                                break;
-                            default:
-                                setCStatus('Contract Not Available');
-                        }
-                    }
-
-                }
-            ).catch(
-                error => {
-                    const dtNow = new Date();
-                    console.log(`A259 * ${dtNow.toISOString().substring(11, 23)} * Promise.all * error`, error.message);
-                }
-            );
-            getBalance(TemperatureInsurer_Interface.addressContract).then(
-                result => setCPremium(result)
-            );
-            ABIGetter(TemperatureInsurer_Interface.addressContract, "get_adverseTemperature").then(
-                result => setAdverseTemperature((Number(result / (10n ** 15n)) / 1000 - 274).toFixed(1))
-            );
-            ABIGetter(TemperatureInsurer_Interface.addressContract, "get_latitude").then(
-                result => setCLatitude(result)
-            );
-            ABIGetter(TemperatureInsurer_Interface.addressContract, "get_longitude").then(
-                result => setCLongitude(result)
-            );
-            ABIGetter(TemperatureInsurer_Interface.addressContract, "get_temperature").then(
-                result => setCurrTemperature((Number(result / (10n ** 15n)) / 1000 - 274).toFixed(1))
-            );
-            */
-            // refreshContractData(); - end
-
         } else {
             console.log(`A249 * ${dtNowW.toISOString().substring(11, 23)} * handleAccountChange * accounts is empty`);
             setWalletAddress("");
@@ -254,6 +170,38 @@ function App() {
         }
     };
 
+    function monitorTXMined(
+        TXPromise,
+        descOperation,
+        labelOperation
+    ) {
+        TXPromise.then(txReturn => {
+            const dtNow = new Date();
+            console.log(`TXM1 * ${dtNow.toISOString().substring(11, 23)} * ${descOperation} * txReturn`, txReturn.transactionIndex);
+            if (txReturn.transactionIndex === null) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => resolve(checkTxIndex(txReturn.hash)), 5000)
+                });
+            } else {
+                return txReturn;
+            }
+        })
+            .then(txReturn => {
+                const dtNow = new Date();
+                console.log(`TXM2 * ${dtNow.toISOString().substring(11, 23)} * ${descOperation} * txReturn`, txReturn.transactionIndex);
+                if (txReturn.transactionIndex === null) {
+                    alert(`${labelOperation} * ${dtNow.toISOString().substring(11, 23)} * Transaction is still mining, please monitor`);
+                } else {
+                    alert(`${labelOperation} * ${dtNow.toISOString().substring(11, 23)} * Transaction mined`);
+                }
+                refreshContractData();
+            })
+            .catch(error => {
+                const dtNow = new Date();
+                console.error(`TXM9 * ${dtNow.toISOString().substring(11, 23)} * ${descOperation} * error`, error);
+            });
+    }
+
     function submitBuy(formData) {
         const formLatitude = formData.get('nameLatitude');
         const formLongitude = formData.get('nameLongitude');
@@ -261,37 +209,16 @@ function App() {
         console.log(`A411 * ${dtNowW.toISOString().substring(11, 23)} * submitBuy * formLatitude ${formLatitude}`);
         console.log(`A412 * ${dtNowW.toISOString().substring(11, 23)} * submitBuy * formLongitude ${formLongitude}`);
         setCStatus(currStatus => currStatus + ' ... updating');
-        cInsure(TemperatureInsurer_Interface.addressContract, formLatitude, formLongitude)
-            .then(result => {
-                const dtNow = new Date();
-                console.log(`A4111 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * result`, result);
-                return checkTxIndex(result);
-            })
-            .then(txReturn => {
-                const dtNow = new Date();
-                console.log(`A4112 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * txReturn`, txReturn.transactionIndex);
-                if (txReturn.transactionIndex === null) {
-                    return new Promise((resolve, reject) => {
-                        setTimeout(() => resolve(checkTxIndex(txReturn.hash)), 5000)
-                    });
-                } else {
-                    return txReturn;
-                }
-            })
-            .then(txReturn => {
-                const dtNow = new Date();
-                console.log(`A4113 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * txReturn`, txReturn.transactionIndex);
-                if (txReturn.transactionIndex === null) {
-                    alert(`Contract Purchase * ${dtNow.toISOString().substring(11, 23)} * Transaction is still mining, please monitor`);
-                } else {
-                    alert(`Contract Purchase * ${dtNow.toISOString().substring(11, 23)} * Transaction mined`);
-                }
-                refreshContractData();
-            })
-            .catch(error => {
-                const dtNow = new Date();
-                console.error(`A4119 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * error`, error);
-            });
+        monitorTXMined(
+            cInsure(TemperatureInsurer_Interface.addressContract, formLatitude, formLongitude)
+                .then(result => {
+                    const dtNow = new Date();
+                    console.log(`A4111 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * result`, result);
+                    return checkTxIndex(result);
+                }),
+                "submitBuy",
+                "Contract Purchase"
+        );
     }
 
     function updStatusWithTemp(formData) {
@@ -301,12 +228,17 @@ function App() {
         const calcTemperature = BigInt((274 + Number(formTemperature)) * 1000) * 10n ** 15n;
         console.log(`A422 * ${dtNowW.toISOString().substring(11, 23)} * updStatusWithTemp * calcTemperature ${calcTemperature}`);
         setCStatus(currStatus => currStatus + ' ... updating');
-        cSetClaim(TemperatureInsurer_Interface.addressContract, calcTemperature)
+        monitorTXMined(
+            cSetClaim(TemperatureInsurer_Interface.addressContract, calcTemperature)
             .then(result => {
                 const dtNow = new Date();
                 console.log(`A4211 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * result`, result);
                 return checkTxIndex(result);
-            })
+            }),
+            "updStatusWithTemp",
+            "Update Status with Temperature"
+    );
+    /*
             .then(txReturn => {
                 const dtNow = new Date();
                 console.log(`A4212 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * txReturn`, txReturn.transactionIndex);
@@ -332,6 +264,7 @@ function App() {
                 const dtNow = new Date();
                 console.log(`A4219 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * error`, error);
             });
+            */
     }
 
     function updAdvTemp(formData) {
