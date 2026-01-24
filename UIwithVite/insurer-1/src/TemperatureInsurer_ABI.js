@@ -88,7 +88,7 @@ const TemperatureInsurer_ABI = [
 
 async function getBalance(walletAddress) {
     const dtNow = new Date();
-    console.log(`D1111 * ${dtNow.toISOString().substring(11, 23)} * getBalance * walletAddress ${walletAddress}`);
+    // console.log(`D1111 * ${dtNow.toISOString().substring(11, 23)} * getBalance * walletAddress ${walletAddress}`);
     try {
         const primitiveValue = await window.ethereum.request(
             {
@@ -101,15 +101,15 @@ async function getBalance(walletAddress) {
     }
     catch (err) {
         const dtNow = new Date();
-        console.log(`D1129 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * error *`, err);
+        console.log(`D1129 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * getBalance * error *`, err);
         throw new Error(`* E * ABIGetter * eth_call * ${err.message}`);
     }
 }
 
 async function ABIGetter(contractAddress, functionCallSign) {
     const dtNow = new Date();
-    console.log(`D1011 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * contractAddress ${contractAddress}`);
-    console.log(`D1012 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * functionCallSign ${functionCallSign}`);
+    // console.log(`D1011 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * contractAddress ${contractAddress}`);
+    // console.log(`D1012 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * functionCallSign ${functionCallSign}`);
     const item = TemperatureInsurer_ABI.find(contractFunction => functionCallSign === contractFunction.callSign);
     try {
         const primitiveValue = await window.ethereum.request(
@@ -124,17 +124,17 @@ async function ABIGetter(contractAddress, functionCallSign) {
         );
         const cdr = ethers.AbiCoder.defaultAbiCoder();
         const dtNow = new Date();
-        console.log(`D1021 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * Promise * cdr ${typeof cdr}`);
-        console.log(`D1022 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * Promise * item.returns ${item.returns}`);
+        // console.log(`D1021 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * Promise * cdr ${typeof cdr}`);
+        // console.log(`D1022 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * Promise * item.returns ${item.returns}`);
         const decodedValue = item.returns.startsWith("uint") ?
             BigInt(primitiveValue)
             : cdr.decode([item.returns], primitiveValue)[0];
-        console.log(`D1023 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * Promise * decodedValue ${decodedValue}, ${typeof decodedValue}`);
+        console.log(`D1023 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * ${functionCallSign} * decodedValue ${decodedValue}, ${typeof decodedValue}`);
         return decodedValue;
     }
     catch (err) {
         const dtNow = new Date();
-        console.log(`D1029 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * error *`, err);
+        console.log(`D1029 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * ${functionCallSign} * error *`, err);
         throw new Error(`* E * ABIGetter * eth_call * ${err.message}`);
     }
 }
