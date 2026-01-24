@@ -47,7 +47,7 @@ function App() {
     const [cClaimStatus, setCClaimStatus] = React.useState("");
 
 
-    function refreshContractData(accounts=[window.ethereum.selectedAddress]) {
+    function refreshContractData(accounts = [window.ethereum.selectedAddress]) {
         Promise.all(
             [
                 ABIGetter(TemperatureInsurer_Interface.addressContract, "get_owner").then(
@@ -139,7 +139,8 @@ function App() {
             console.log(`A243 * ${dtNowW.toISOString().substring(11, 23)} * handleAccountChange * selectedAddress ${window.ethereum.selectedAddress}`);
             setWalletAddress(accounts[0]);
             setAppStatus('Connected');
-            // refreshContractData(); - start
+            refreshContractData(accounts);
+            /*
             Promise.all(
                 [
                     ABIGetter(TemperatureInsurer_Interface.addressContract, "get_owner").then(
@@ -220,6 +221,7 @@ function App() {
             ABIGetter(TemperatureInsurer_Interface.addressContract, "get_temperature").then(
                 result => setCurrTemperature((Number(result / (10n ** 15n)) / 1000 - 274).toFixed(1))
             );
+            */
             // refreshContractData(); - end
 
         } else {
@@ -267,6 +269,23 @@ function App() {
             .then(txReturn => {
                 const dtNow = new Date();
                 console.log(`A4112 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * txReturn`, txReturn.transactionIndex);
+                if (txReturn.transactionIndex === null) {
+                    // return new Promise( (resolve, reject) => resolve(waitForTxToMine(txReturn.hash)));
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => resolve(checkTxIndex(txReturn.hash)), 5000)
+                    });
+                } else {
+                    return txReturn;
+                }
+            })
+            .then(txReturn => {
+                const dtNow = new Date();
+                console.log(`A4113 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * txReturn`, txReturn.transactionIndex);
+                if (txReturn.transactionIndex === null) {
+                    alert(`Contract Purchase * ${dtNow.toISOString().substring(11, 23)} * Transaction is still mining, please monitor`);
+                } else {
+                    alert(`Contract Purchase * ${dtNow.toISOString().substring(11, 23)} * Transaction mined`);
+                }
                 refreshContractData();
             })
             .catch(error => {
@@ -281,7 +300,7 @@ function App() {
         console.log(`A421 * ${dtNowW.toISOString().substring(11, 23)} * updStatusWithTemp * formTemperature ${formTemperature}`);
         const calcTemperature = BigInt((274 + Number(formTemperature)) * 1000) * 10n ** 15n;
         console.log(`A422 * ${dtNowW.toISOString().substring(11, 23)} * updStatusWithTemp * calcTemperature ${calcTemperature}`);
-        setCStatus(currStatus => currStatus+' ... updating');
+        setCStatus(currStatus => currStatus + ' ... updating');
         cSetClaim(TemperatureInsurer_Interface.addressContract, calcTemperature)
             .then(result => {
                 const dtNow = new Date();
@@ -290,18 +309,47 @@ function App() {
             })
             .then(txReturn => {
                 const dtNow = new Date();
-                console.log(`A4212 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * txReturn`, txReturn.transactionIndex);
+                console.log(`A4212 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * txReturn`, txReturn.transactionIndex);
+
+                async function waitForTxToMine(txHash) {
+                    // Either returns a "promised" hash of a mined transaction
+                    // Or throws and Error when transaction has not been mined for X attempts / seconds
+                    // This is not necessarily an error - just enough to tell user to monitor the transaction's status.
+
+                    let lcCount = 10;
+                    let nthAttempt = null;
+                    while (lcCount > 0) {
+                        lcCount--;
+                        setTimeout(() => {
+                            nthAttempt = checkTxIndex(txReturn.hash);
+                        }, 6000);
+                        const nthAttemptTransactionIndex = await nthAttempt.transactionIndex;
+                        if (nthAttemptTransactionIndex !== null) {
+                            lcCount = 0;
+                        }
+                        const dtNow = new Date();
+                        console.log(`A4218 * ${dtNow.toISOString().substring(11, 23)} * waitForTxToMine * nthAttemptTransactionIndex`, nthAttemptTransactionIndex);
+                    }
+                    return nthAttempt;
+                }
+
                 if (txReturn.transactionIndex === null) {
-                    return new Promise((resolve, reject) => {
-                        setTimeout(() => resolve(checkTxIndex(txReturn.hash)), 5000)
-                    });
+                    return new Promise((resolve, reject) => resolve(waitForTxToMine(txReturn.hash)));
+                    // return new Promise((resolve, reject) => {
+                    //     setTimeout(() => resolve(checkTxIndex(txReturn.hash)), 5000)
+                    // });
                 } else {
                     return txReturn;
                 }
             })
             .then(txReturn => {
                 const dtNow = new Date();
-                console.log(`A4112 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * txReturn`, txReturn.transactionIndex);
+                console.log(`A4213 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * txReturn`, txReturn.transactionIndex);
+                if (txReturn.transactionIndex === null) {
+                    alert(`Update Status with Temperature * ${dtNow.toISOString().substring(11, 23)} * Transaction is still mining, please monitor`);
+                } else {
+                    alert(`Update Status with Temperature * ${dtNow.toISOString().substring(11, 23)} * Transaction mined`);
+                }
                 refreshContractData();
             })
             .catch(error => {
