@@ -260,6 +260,7 @@ function App() {
         dtNowW = new Date();
         console.log(`A411 * ${dtNowW.toISOString().substring(11, 23)} * submitBuy * formLatitude ${formLatitude}`);
         console.log(`A412 * ${dtNowW.toISOString().substring(11, 23)} * submitBuy * formLongitude ${formLongitude}`);
+        setCStatus(currStatus => currStatus + ' ... updating');
         cInsure(TemperatureInsurer_Interface.addressContract, formLatitude, formLongitude)
             .then(result => {
                 const dtNow = new Date();
@@ -270,7 +271,6 @@ function App() {
                 const dtNow = new Date();
                 console.log(`A4112 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * txReturn`, txReturn.transactionIndex);
                 if (txReturn.transactionIndex === null) {
-                    // return new Promise( (resolve, reject) => resolve(waitForTxToMine(txReturn.hash)));
                     return new Promise((resolve, reject) => {
                         setTimeout(() => resolve(checkTxIndex(txReturn.hash)), 5000)
                     });
@@ -310,41 +310,17 @@ function App() {
             .then(txReturn => {
                 const dtNow = new Date();
                 console.log(`A4212 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * txReturn`, txReturn.transactionIndex);
-
-                async function waitForTxToMine(txHash) {
-                    // Either returns a "promised" hash of a mined transaction
-                    // Or throws and Error when transaction has not been mined for X attempts / seconds
-                    // This is not necessarily an error - just enough to tell user to monitor the transaction's status.
-
-                    let lcCount = 10;
-                    let nthAttempt = null;
-                    while (lcCount > 0) {
-                        lcCount--;
-                        setTimeout(() => {
-                            nthAttempt = checkTxIndex(txReturn.hash);
-                        }, 6000);
-                        const nthAttemptTransactionIndex = await nthAttempt.transactionIndex;
-                        if (nthAttemptTransactionIndex !== null) {
-                            lcCount = 0;
-                        }
-                        const dtNow = new Date();
-                        console.log(`A4218 * ${dtNow.toISOString().substring(11, 23)} * waitForTxToMine * nthAttemptTransactionIndex`, nthAttemptTransactionIndex);
-                    }
-                    return nthAttempt;
-                }
-
                 if (txReturn.transactionIndex === null) {
-                    return new Promise((resolve, reject) => resolve(waitForTxToMine(txReturn.hash)));
-                    // return new Promise((resolve, reject) => {
-                    //     setTimeout(() => resolve(checkTxIndex(txReturn.hash)), 5000)
-                    // });
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => resolve(checkTxIndex(txReturn.hash)), 5000)
+                    });
                 } else {
                     return txReturn;
                 }
             })
             .then(txReturn => {
                 const dtNow = new Date();
-                console.log(`A4213 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * txReturn`, txReturn.transactionIndex);
+                console.log(`A4213 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * txReturn`, txReturn.transactionIndex);
                 if (txReturn.transactionIndex === null) {
                     alert(`Update Status with Temperature * ${dtNow.toISOString().substring(11, 23)} * Transaction is still mining, please monitor`);
                 } else {
