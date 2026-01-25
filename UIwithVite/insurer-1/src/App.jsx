@@ -216,8 +216,8 @@ function App() {
                     console.log(`A4111 * ${dtNow.toISOString().substring(11, 23)} * submitBuy * result`, result);
                     return checkTxIndex(result);
                 }),
-                "submitBuy",
-                "Contract Purchase"
+            "submitBuy",
+            "Contract Purchase"
         );
     }
 
@@ -230,41 +230,41 @@ function App() {
         setCStatus(currStatus => currStatus + ' ... updating');
         monitorTXMined(
             cSetClaim(TemperatureInsurer_Interface.addressContract, calcTemperature)
-            .then(result => {
-                const dtNow = new Date();
-                console.log(`A4211 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * result`, result);
-                return checkTxIndex(result);
-            }),
+                .then(result => {
+                    const dtNow = new Date();
+                    console.log(`A4211 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * result`, result);
+                    return checkTxIndex(result);
+                }),
             "updStatusWithTemp",
             "Update Status with Temperature"
-    );
-    /*
-            .then(txReturn => {
-                const dtNow = new Date();
-                console.log(`A4212 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * txReturn`, txReturn.transactionIndex);
-                if (txReturn.transactionIndex === null) {
-                    return new Promise((resolve, reject) => {
-                        setTimeout(() => resolve(checkTxIndex(txReturn.hash)), 5000)
-                    });
-                } else {
-                    return txReturn;
-                }
-            })
-            .then(txReturn => {
-                const dtNow = new Date();
-                console.log(`A4213 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * txReturn`, txReturn.transactionIndex);
-                if (txReturn.transactionIndex === null) {
-                    alert(`Update Status with Temperature * ${dtNow.toISOString().substring(11, 23)} * Transaction is still mining, please monitor`);
-                } else {
-                    alert(`Update Status with Temperature * ${dtNow.toISOString().substring(11, 23)} * Transaction mined`);
-                }
-                refreshContractData();
-            })
-            .catch(error => {
-                const dtNow = new Date();
-                console.log(`A4219 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * error`, error);
-            });
-            */
+        );
+        /*
+                .then(txReturn => {
+                    const dtNow = new Date();
+                    console.log(`A4212 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * txReturn`, txReturn.transactionIndex);
+                    if (txReturn.transactionIndex === null) {
+                        return new Promise((resolve, reject) => {
+                            setTimeout(() => resolve(checkTxIndex(txReturn.hash)), 5000)
+                        });
+                    } else {
+                        return txReturn;
+                    }
+                })
+                .then(txReturn => {
+                    const dtNow = new Date();
+                    console.log(`A4213 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * txReturn`, txReturn.transactionIndex);
+                    if (txReturn.transactionIndex === null) {
+                        alert(`Update Status with Temperature * ${dtNow.toISOString().substring(11, 23)} * Transaction is still mining, please monitor`);
+                    } else {
+                        alert(`Update Status with Temperature * ${dtNow.toISOString().substring(11, 23)} * Transaction mined`);
+                    }
+                    refreshContractData();
+                })
+                .catch(error => {
+                    const dtNow = new Date();
+                    console.log(`A4219 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * error`, error);
+                });
+                */
     }
 
     function updAdvTemp(formData) {
@@ -300,6 +300,18 @@ function App() {
     function submitClaim() {
         dtNowW = new Date();
         console.log(`A451 * ${dtNowW.toISOString().substring(11, 23)} * submitClaim`);
+        setCStatus(currStatus => currStatus + ' ... updating');
+        monitorTXMined(
+            cClaim(TemperatureInsurer_Interface.addressContract)
+            .then(result => {
+                const dtNow = new Date();
+                console.log(`A4511 * ${dtNow.toISOString().substring(11, 23)} * submitClaim * result`, result);
+                return checkTxIndex(result);
+            }),
+            "submitClaim",
+            "Make a Claim"
+        );
+        /*
         cClaim(TemperatureInsurer_Interface.addressContract)
             .then(result => {
                 const dtNow = new Date();
@@ -309,11 +321,24 @@ function App() {
                 const dtNow = new Date();
                 console.error(`A4519 * ${dtNow.toISOString().substring(11, 23)} * submitClaim * error`, error);
             });
+            */
     }
 
     function submitReset() {
         dtNowW = new Date();
         console.log(`A461 * ${dtNowW.toISOString().substring(11, 23)} * submitReset`);
+        setCStatus(currStatus => currStatus + ' ... updating');
+        monitorTXMined(
+            cResetContract(TemperatureInsurer_Interface.addressContract)
+                .then(result => {
+                    const dtNow = new Date();
+                    console.log(`A4611 * ${dtNow.toISOString().substring(11, 23)} * submitReset * result`, result);
+                    return checkTxIndex(result);
+                }),
+            "submitReset",
+            "Reset Contract"
+        );
+        /*
         cResetContract(TemperatureInsurer_Interface.addressContract)
             .then(result => {
                 const dtNow = new Date();
@@ -323,6 +348,7 @@ function App() {
                 const dtNow = new Date();
                 console.error(`A4619 * ${dtNow.toISOString().substring(11, 23)} * submitReset * error`, error);
             });
+            */
     }
 
     React.useEffect(
