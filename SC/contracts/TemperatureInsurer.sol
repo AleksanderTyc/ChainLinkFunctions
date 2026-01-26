@@ -4,6 +4,13 @@ pragma solidity ^0.8.28;
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
+/**
+@title Insurance contract, allows insured wallet to claim damage if recorded temperature drops below defined level
+@author Aleks Tyc
+@notice This is not a proper insurance contract.
+@notice It does not implement portfolio of insured wallets (risk sharing), or risk pricing mechanisms.
+@dev Implemented and tested for the purpose of porting into ChainLink Functions and Automation mechanisms.
+*/
 contract TemperatureInsurer {
     address public owner;
     uint256 public adverseTemperature;
@@ -15,12 +22,13 @@ contract TemperatureInsurer {
     uint256 public temperature;
     uint256 public claimStatus;
 
-    // Event to record adverse event
+    /// @notice Emitted when adverse event occurs (current temperature drops below adverseTemperature)
     event Adverse(address indexed sender, uint256 temperature);
 
-    constructor(uint256 _adverseTemperature) {
+    constructor(uint256 _adverseTemperature, uint256 _temperature) {
         owner = msg.sender;
         adverseTemperature = _adverseTemperature;
+        temperature = _temperature;
     }
 
     function insure(
@@ -38,6 +46,10 @@ contract TemperatureInsurer {
         longitude = _longitude;
     }
 
+    // This is wrong - the contract should always allow updating current temperature, but...
+    // it should only change status if current status is 1. This should not be a requirement, just a piece of logic.
+    /// @dev obsolete, to be replaced with setTemperature and deleted
+    /*
     function setClaim(uint256 _temperature) public {
         require(
             claimStatus == 1,
@@ -46,6 +58,20 @@ contract TemperatureInsurer {
         require(msg.sender == owner, "E21: Only Owner allowed to setClaim");
         temperature = _temperature;
         if (_temperature < adverseTemperature) {
+            claimStatus = 2;
+            emit Adverse(msg.sender, _temperature);
+        }
+    }
+*/
+    /**
+        @notice acquire current temperature and derive claimStatus as appropriate
+        @notice only Owner allowed to call
+        @param _temperature new current temperature
+    */
+    function setTemperature(uint256 _temperature) public {
+        require(msg.sender == owner, "E21: Only Owner allowed to setClaim");
+        temperature = _temperature;
+        if ((claimStatus == 1) && (_temperature < adverseTemperature)) {
             claimStatus = 2;
             emit Adverse(msg.sender, _temperature);
         }
@@ -92,6 +118,7 @@ contract TemperatureInsurer {
             result;
         }
         adverseTemperature = 272 * 10 ** 18;
+        temperature = (274 + 18) * 10 ** 18;
         claimStatus = 0;
         insured = address(0);
         latitude = "";
