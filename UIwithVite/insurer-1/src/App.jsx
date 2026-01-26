@@ -5,7 +5,7 @@ import {
     ABIGetter,
     getBalance,
     cInsure,
-    cSetClaim,
+    cSetTemperature,
     cSetAdverseTemperature,
     cSetClaimStatus,
     cClaim,
@@ -191,14 +191,15 @@ function App() {
                 console.log(`TXM2 * ${dtNow.toISOString().substring(11, 23)} * ${descOperation} * txReturn`, txReturn.transactionIndex);
                 if (txReturn.transactionIndex === null) {
                     alert(`${labelOperation} * ${dtNow.toISOString().substring(11, 23)} * Transaction is still mining, please monitor`);
-                } else {
-                    alert(`${labelOperation} * ${dtNow.toISOString().substring(11, 23)} * Transaction mined`);
                 }
-                refreshContractData();
             })
             .catch(error => {
                 const dtNow = new Date();
                 console.error(`TXM9 * ${dtNow.toISOString().substring(11, 23)} * ${descOperation} * error`, error);
+            })
+            .finally(result => {
+                refreshContractData();
+                return result;
             });
     }
 
@@ -229,7 +230,7 @@ function App() {
         console.log(`A422 * ${dtNowW.toISOString().substring(11, 23)} * updStatusWithTemp * calcTemperature ${calcTemperature}`);
         setCStatus(currStatus => currStatus + ' ... updating');
         monitorTXMined(
-            cSetClaim(TemperatureInsurer_Interface.addressContract, calcTemperature)
+            cSetTemperature(TemperatureInsurer_Interface.addressContract, calcTemperature)
                 .then(result => {
                     const dtNow = new Date();
                     console.log(`A4211 * ${dtNow.toISOString().substring(11, 23)} * updStatusWithTemp * result`, result);
@@ -273,6 +274,18 @@ function App() {
         console.log(`A431 * ${dtNowW.toISOString().substring(11, 23)} * updAdvTemp * formTemperature ${formTemperature}`);
         const calcTemperature = BigInt((274 + Number(formTemperature)) * 1000) * 10n ** 15n;
         console.log(`A432 * ${dtNowW.toISOString().substring(11, 23)} * updAdvTemp * calcTemperature ${calcTemperature}`);
+        setCStatus(currStatus => currStatus + ' ... updating');
+        monitorTXMined(
+            cSetAdverseTemperature(TemperatureInsurer_Interface.addressContract, calcTemperature)
+                .then(result => {
+                    const dtNow = new Date();
+                    console.log(`A4311 * ${dtNow.toISOString().substring(11, 23)} * updAdvTemp * result`, result);
+                    return checkTxIndex(result);
+                }),
+            "updStatus",
+            "Update Adverse Temperature"
+        );
+        /*
         cSetAdverseTemperature(TemperatureInsurer_Interface.addressContract, calcTemperature)
             .then(result => {
                 const dtNow = new Date();
@@ -282,10 +295,26 @@ function App() {
                 const dtNow = new Date();
                 console.log(`A4319 * ${dtNow.toISOString().substring(11, 23)} * updAdvTemp * error`, error);
             });
+            */
     }
 
     function updStatus(formData) {
-        const formObject = formData.get('nameStatus');
+        const formStatus = formData.get('nameStatus');
+        const calcStatus = BigInt(formStatus);
+        dtNowW = new Date();
+        console.log(`A441 * ${dtNowW.toISOString().substring(11, 23)} * updStatus * BigInt new Status ${calcStatus}`);
+        setCStatus(currStatus => currStatus + ' ... updating');
+        monitorTXMined(
+            cSetClaimStatus(TemperatureInsurer_Interface.addressContract, calcStatus)
+                .then(result => {
+                    const dtNow = new Date();
+                    console.log(`A4411 * ${dtNow.toISOString().substring(11, 23)} * updStatus * result`, result);
+                    return checkTxIndex(result);
+                }),
+            "updStatus",
+            "Force-Set Status"
+        );
+/*
         cSetClaimStatus(TemperatureInsurer_Interface.addressContract, BigInt(formObject))
             .then(result => {
                 const dtNow = new Date();
@@ -295,6 +324,7 @@ function App() {
                 const dtNow = new Date();
                 console.error(`A4419 * ${dtNow.toISOString().substring(11, 23)} * updStatus * error`, error);
             });
+            */
     }
 
     function submitClaim() {
@@ -303,11 +333,11 @@ function App() {
         setCStatus(currStatus => currStatus + ' ... updating');
         monitorTXMined(
             cClaim(TemperatureInsurer_Interface.addressContract)
-            .then(result => {
-                const dtNow = new Date();
-                console.log(`A4511 * ${dtNow.toISOString().substring(11, 23)} * submitClaim * result`, result);
-                return checkTxIndex(result);
-            }),
+                .then(result => {
+                    const dtNow = new Date();
+                    console.log(`A4511 * ${dtNow.toISOString().substring(11, 23)} * submitClaim * result`, result);
+                    return checkTxIndex(result);
+                }),
             "submitClaim",
             "Make a Claim"
         );

@@ -60,9 +60,9 @@ const TemperatureInsurer_ABI = [
         evmSignature: ethers.id("insure(string,string)").substring(0, 10)
     },
     {
-        solSignature: "function setClaim(uint256) public",
-        callSign: "call_setClaim",
-        evmSignature: ethers.id("setClaim(uint256)").substring(0, 10)
+        solSignature: "function setTemperature(uint256) public",
+        callSign: "call_setTemperature",
+        evmSignature: ethers.id("setTemperature(uint256)").substring(0, 10)
     },
     {
         solSignature: "function setAdverseTemperature(uint256) public",
@@ -191,7 +191,8 @@ function cInsure(contractAddress, cLatitude, cLongitude) {
                         {
                             from: window.ethereum.selectedAddress,
                             to: contractAddress,
-                            value: ethers.formatUnits(ethers.parseEther("1.1"), "wei"),
+                            // value: ethers.formatUnits(ethers.parseEther("1.1"), "wei"),
+                            value: "0x" +ethers.parseEther("1.1").toString(16),
                             data: item.evmSignature + encodedData
                             // chainId: "0x7a69" // 31337 HardHat
                         }]
@@ -224,8 +225,8 @@ function cInsure(contractAddress, cLatitude, cLongitude) {
 31372e3939383937353832333438333400000000000000000000000000000000
 */
 
-function cSetClaim(contractAddress, cTemperature) {
-    const item = TemperatureInsurer_ABI.find(contractFunction => 'call_setClaim' === contractFunction.callSign);
+function cSetTemperature(contractAddress, cTemperature) {
+    const item = TemperatureInsurer_ABI.find(contractFunction => 'call_setTemperature' === contractFunction.callSign);
 
     return new Promise((resolve, reject) => {
         try {
@@ -396,7 +397,7 @@ export {
     ABIGetter,
     getBalance,
     cInsure,
-    cSetClaim,
+    cSetTemperature,
     cSetAdverseTemperature,
     cSetClaimStatus,
     cClaim,
