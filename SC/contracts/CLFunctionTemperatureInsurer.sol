@@ -83,9 +83,11 @@ contract CLFunctionTemperatureInsurer is FunctionsClient, ConfirmedOwner {
      * @notice Initializes the contract with the Chainlink router address and sets the contract owner
      */
     constructor(
-        uint256 _adverseTemperature
+        uint256 _adverseTemperature,
+        uint256 _temperature
     ) FunctionsClient(router) ConfirmedOwner(msg.sender) {
         adverseTemperature = _adverseTemperature;
+        temperature = _temperature;
     }
 
     /**
@@ -179,17 +181,26 @@ contract CLFunctionTemperatureInsurer is FunctionsClient, ConfirmedOwner {
 
     function claim() public {
         require(msg.sender == insured, "E31: Only Insured can claim");
-        require(claimStatus >= 2, "E32: No claim available");
+        require(claimStatus == 2, "E32: No claim available");
 
         (bool result, ) = insured.call{value: address(this).balance}("");
         if (result) {
             result;
         }
+        adverseTemperature = 272 * 10 ** 18;
         claimStatus = 0;
+        insured = address(0);
+        latitude = "";
+        longitude = "";
     }
 
     function resetContract() public onlyOwner {
+        (bool result, ) = owner.call{value: address(this).balance}("");
+        if (result) {
+            result;
+        }
         adverseTemperature = 272 * 10 ** 18;
+        temperature = (274 + 18) * 10 ** 18;
         claimStatus = 0;
         insured = address(0);
         latitude = "";
