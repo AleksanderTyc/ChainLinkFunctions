@@ -87,8 +87,6 @@ const TemperatureInsurer_ABI = [
 ];
 
 async function getBalance(walletAddress) {
-    const dtNow = new Date();
-    // console.log(`D1111 * ${dtNow.toISOString().substring(11, 23)} * getBalance * walletAddress ${walletAddress}`);
     try {
         const primitiveValue = await window.ethereum.request(
             {
@@ -107,9 +105,6 @@ async function getBalance(walletAddress) {
 }
 
 async function ABIGetter(contractAddress, functionCallSign) {
-    const dtNow = new Date();
-    // console.log(`D1011 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * contractAddress ${contractAddress}`);
-    // console.log(`D1012 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * functionCallSign ${functionCallSign}`);
     const item = TemperatureInsurer_ABI.find(contractFunction => functionCallSign === contractFunction.callSign);
     try {
         const primitiveValue = await window.ethereum.request(
@@ -137,40 +132,6 @@ async function ABIGetter(contractAddress, functionCallSign) {
         console.log(`D1029 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * ${functionCallSign} * error *`, err);
         throw new Error(`* E * ABIGetter * eth_call * ${err.message}`);
     }
-}
-
-function ABIGetter_sync(contractAddress, functionCallSign) {
-    const dtNow = new Date();
-    console.log(`D1011 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * contractAddress ${contractAddress}`);
-    console.log(`D1012 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * functionCallSign ${functionCallSign}`);
-    const item = TemperatureInsurer_ABI.find(contractFunction => functionCallSign === contractFunction.callSign);
-    return new Promise((resolve, reject) => {
-        try {
-            const primitiveValue = window.ethereum.request(
-                {
-                    method: "eth_call",
-                    params: [
-                        {
-                            to: contractAddress,
-                            data: item.evmSignature
-                        }]
-                }
-            );
-            const cdr = ethers.AbiCoder.defaultAbiCoder();
-            const dtNow = new Date();
-            console.log(`D1021 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * Promise * cdr ${typeof cdr}`);
-            console.log(`D1022 * ${dtNow.toISOString().substring(11, 23)} * ABIGetter * Promise * item.returns ${item.returns}`);
-            const diag1 = cdr.decode(['address'], primitiveValue);
-            // const decodedValue = item.returns.startsWith("uint") ?
-            //     BigInt(primitiveValue)
-            //     : cdr.decode([item.returns], primitiveValue)[0];
-            // resolve(decodedValue);
-            resolve(primitiveValue);
-        }
-        catch (err) {
-            reject(err);
-        }
-    });
 }
 
 function cInsure(contractAddress, cLatitude, cLongitude) {
@@ -204,26 +165,6 @@ function cInsure(contractAddress, cLatitude, cLongitude) {
         }
     });
 }
-/*
-[
-	"0x8e1503a100000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000001035332e3132323236313937363139333500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001031372e3939383937353832333438333400000000000000000000000000000000"
-]
-0x8e1503a1
-0000000000000000000000000000000000000000000000000000000000000040
-0000000000000000000000000000000000000000000000000000000000000080
-0000000000000000000000000000000000000000000000000000000000000010
-35332e3132323236313937363139333500000000000000000000000000000000
-0000000000000000000000000000000000000000000000000000000000000010
-31372e3939383937353832333438333400000000000000000000000000000000
-
-0x8e1503a1
-0000000000000000000000000000000000000000000000000000000000000040
-0000000000000000000000000000000000000000000000000000000000000080
-0000000000000000000000000000000000000000000000000000000000000010
-35332e3132323236313937363139333500000000000000000000000000000000
-0000000000000000000000000000000000000000000000000000000000000010
-31372e3939383937353832333438333400000000000000000000000000000000
-*/
 
 function cSetTemperature(contractAddress, cTemperature) {
     const item = TemperatureInsurer_ABI.find(contractFunction => 'call_setTemperature' === contractFunction.callSign);
@@ -315,7 +256,6 @@ function cSetClaimStatus(contractAddress, cStatus = 2) {
                             */
                             // chainId: "0x7a69" // 31337 HardHat
                         }]
-
                 }
             ));
         }
