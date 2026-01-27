@@ -31,6 +31,18 @@ contract CLFunctionTemperatureInsurer is FunctionsClient, ConfirmedOwner {
     bytes public s_lastResponse;
     bytes public s_lastError;
 
+    // Adverse event temperature threshold
+    uint256 public adverseTemperature;
+
+    address public insured;
+    string public latitude;
+    string public longitude;
+
+    // State variable to store the returned temperature information
+    uint256 public temperature;
+
+    uint256 public claimStatus;
+
     // Custom error type
     error UnexpectedRequestID(bytes32 requestId);
 
@@ -41,9 +53,6 @@ contract CLFunctionTemperatureInsurer is FunctionsClient, ConfirmedOwner {
         bytes response,
         bytes err
     );
-
-    // Adverse event temperature threshold
-    uint256 public adverseTemperature;
 
     // Event to record adverse event
     event Adverse(address indexed sender, uint256 temperature);
@@ -76,11 +85,12 @@ contract CLFunctionTemperatureInsurer is FunctionsClient, ConfirmedOwner {
     bytes32 donID =
         0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000;
 
-    // State variable to store the returned temperature information
-    uint256 public temperature;
-
     /**
      * @notice Initializes the contract with the Chainlink router address and sets the contract owner
+     * @param _adverseTemperature Insured adverse temperature level
+     * @dev adverseTemperature can later be adjusted by the Owner by calling setAdverseTemperature
+     * @param _temperature Initial current temperature
+     * @dev temperature is automatically updated with fulfillRequest
      */
     constructor(
         uint256 _adverseTemperature,
@@ -93,16 +103,21 @@ contract CLFunctionTemperatureInsurer is FunctionsClient, ConfirmedOwner {
     /**
      * @notice Sends an HTTP request for character information
      * @param subscriptionId The ID for the Chainlink subscription
-     * @param args The arguments to pass to the HTTP request
+     * @dev args The arguments to pass to the HTTP request
+     * @dev args is now obsolete, the arguments are taken from storage latitude and longitude data
      * @return requestId The ID of the request
      */
     function sendRequest(
         uint64 subscriptionId,
-        string[] calldata args
+        string[] calldata // args
     ) external onlyOwner returns (bytes32 requestId) {
         FunctionsRequest.Request memory req;
+        string[] memory locArgs = new string[](2);
         req.initializeRequestForInlineJavaScript(source); // Initialize the request with JS code
-        if (args.length > 0) req.setArgs(args); // Set the arguments for the request
+        locArgs[0] = latitude;
+        locArgs[1] = longitude;
+        // if (args.length > 0) req.setArgs(args); // Set the arguments for the request
+        req.setArgs(locArgs); // Set the arguments for the request
 
         // Send the request and store the request ID
         s_lastRequestId = _sendRequest(
@@ -147,12 +162,6 @@ contract CLFunctionTemperatureInsurer is FunctionsClient, ConfirmedOwner {
         emit Response(requestId, temperature, s_lastResponse, s_lastError);
     }
 
-    uint256 public claimStatus;
-
-    address public insured;
-    string public latitude;
-    string public longitude;
-
     function insure(
         string calldata _latitude,
         string calldata _longitude
@@ -195,7 +204,7 @@ contract CLFunctionTemperatureInsurer is FunctionsClient, ConfirmedOwner {
     }
 
     function resetContract() public onlyOwner {
-        (bool result, ) = owner.call{value: address(this).balance}("");
+        (bool result, ) = (owner()).call{value: address(this).balance}("");
         if (result) {
             result;
         }

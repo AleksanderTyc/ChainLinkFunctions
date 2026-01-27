@@ -27,9 +27,13 @@ const TemperatureInsurer_Interface = {
     addressWallet: secrets.HARDHATn1_WALLET
 };
 */
-const TemperatureInsurer_Interface = {
-    addressContract: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-};
+
+// Local HardHat
+// const TemperatureInsurer_Interface = { addressContract: "0x5FbDB2315678afecb367f032d93F642f64180aa3" };
+
+// Sepolia
+const TemperatureInsurer_Interface = { addressContract: "0x4b8276e9EDbF50b3431e365F01f86e64327CF2ca" };
+
 /* BC - related - ends */
 
 function App() {
