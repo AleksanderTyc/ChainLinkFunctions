@@ -31,6 +31,9 @@ contract CLFunctionTemperatureInsurer is FunctionsClient, ConfirmedOwner {
     bytes public s_lastResponse;
     bytes public s_lastError;
 
+    // A non-owner address which will be authorised to send request to ChainLink Functions
+    address public authorisedCaller;
+
     // Adverse event temperature threshold
     uint256 public adverseTemperature;
 
@@ -45,6 +48,10 @@ contract CLFunctionTemperatureInsurer is FunctionsClient, ConfirmedOwner {
 
     // Custom error type
     error UnexpectedRequestID(bytes32 requestId);
+
+    error BadCallerAddress(address caller);
+
+    event CallerAddress(address caller);
 
     // Event to log responses
     event Response(
@@ -113,6 +120,53 @@ contract CLFunctionTemperatureInsurer is FunctionsClient, ConfirmedOwner {
     ) external onlyOwner returns (bytes32 requestId) {
         FunctionsRequest.Request memory req;
         string[] memory locArgs = new string[](2);
+        req.initializeRequestForInlineJavaScript(source); // Initialize the request with JS code
+        locArgs[0] = latitude;
+        locArgs[1] = longitude;
+        // if (args.length > 0) req.setArgs(args); // Set the arguments for the request
+        req.setArgs(locArgs); // Set the arguments for the request
+
+        // Send the request and store the request ID
+        s_lastRequestId = _sendRequest(
+            req.encodeCBOR(),
+            subscriptionId,
+            gasLimit,
+            donID
+        );
+
+        return s_lastRequestId;
+    }
+
+    /**
+     * @notice Same as sendRequest above, but allows call from authorisedCaller
+     * @notice Sends an HTTP request for character information
+     * @param subscriptionId The ID for the Chainlink subscription
+     * @dev args The arguments to pass to the HTTP request
+     * @dev args is now obsolete, the arguments are taken from storage latitude and longitude data
+     * @return requestId The ID of the request
+     */
+    function sendRequestAuthCaller(
+        uint64 subscriptionId,
+        string[] calldata // args
+    ) external returns (bytes32 requestId) {
+        FunctionsRequest.Request memory req;
+        string[] memory locArgs = new string[](2);
+
+        // if ((msg.sender != authorisedCaller) && (msg.sender != owner())) {
+        //     revert BadCallerAddress(msg.sender);
+        // }
+        // require(
+        //     (msg.sender == authorisedCaller) || (msg.sender == owner()),
+        //     "E01: Only Owner or authorisedCaller allowed to call"
+        // );
+
+        // require(
+        //     (msg.sender == authorisedCaller) || (msg.sender == owner()),
+        //     BadCallerAddress(msg.sender)
+        // );
+
+        emit CallerAddress(msg.sender);
+
         req.initializeRequestForInlineJavaScript(source); // Initialize the request with JS code
         locArgs[0] = latitude;
         locArgs[1] = longitude;
@@ -214,6 +268,10 @@ contract CLFunctionTemperatureInsurer is FunctionsClient, ConfirmedOwner {
         insured = address(0);
         latitude = "";
         longitude = "";
+    }
+
+    function setAuthorisedCaller(address _caller) public onlyOwner {
+        authorisedCaller = _caller;
     }
 }
 

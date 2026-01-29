@@ -32,7 +32,7 @@ const TemperatureInsurer_Interface = {
 // const TemperatureInsurer_Interface = { addressContract: "0x5FbDB2315678afecb367f032d93F642f64180aa3" };
 
 // Sepolia
-const TemperatureInsurer_Interface = { addressContract: "0x4b8276e9EDbF50b3431e365F01f86e64327CF2ca" };
+const TemperatureInsurer_Interface = { addressContract: "0xfD3091cd58E749bF3A12c864e943D6804feCbfB7" };
 
 /* BC - related - ends */
 
