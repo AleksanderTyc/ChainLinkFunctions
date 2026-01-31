@@ -160,6 +160,54 @@ contract CLFunctionTemperatureInsurer is FunctionsClient, ConfirmedOwner {
         //     "E01: Only Owner or authorisedCaller allowed to call"
         // );
 
+        require(
+            (msg.sender == authorisedCaller) || (msg.sender == owner()),
+            BadCallerAddress(msg.sender)
+        );
+
+        emit CallerAddress(msg.sender);
+
+        req.initializeRequestForInlineJavaScript(source); // Initialize the request with JS code
+        locArgs[0] = latitude;
+        locArgs[1] = longitude;
+        // if (args.length > 0) req.setArgs(args); // Set the arguments for the request
+        req.setArgs(locArgs); // Set the arguments for the request
+
+        // Send the request and store the request ID
+        s_lastRequestId = _sendRequest(
+            req.encodeCBOR(),
+            subscriptionId,
+            gasLimit,
+            donID
+        );
+
+        return s_lastRequestId;
+    }
+
+    /**
+     * @notice Same as sendRequest above, but allows call from anyone
+     * @notice It logs caller's address for diagnostics purposes
+     * @notice Sends an HTTP request for character information
+     * @param subscriptionId The ID for the Chainlink subscription
+     * @dev args The arguments to pass to the HTTP request
+     * @dev args is now obsolete, the arguments are taken from storage latitude and longitude data
+     * @return requestId The ID of the request
+     */
+    function sendRequestWWWest(
+        uint64 subscriptionId,
+        string[] calldata // args
+    ) external returns (bytes32 requestId) {
+        FunctionsRequest.Request memory req;
+        string[] memory locArgs = new string[](2);
+
+        // if ((msg.sender != authorisedCaller) && (msg.sender != owner())) {
+        //     revert BadCallerAddress(msg.sender);
+        // }
+        // require(
+        //     (msg.sender == authorisedCaller) || (msg.sender == owner()),
+        //     "E01: Only Owner or authorisedCaller allowed to call"
+        // );
+
         // require(
         //     (msg.sender == authorisedCaller) || (msg.sender == owner()),
         //     BadCallerAddress(msg.sender)
